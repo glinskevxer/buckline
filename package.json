@@ -1,0 +1,24 @@
+{
+  "name": "buckline",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Log scaling, grading and yield accounting for a hardwood sawmill",
+  "type": "module",
+  "engines": {
+    "node": ">=18.18"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "1.2.2",
+    "eslint": "8.56.0",
+    "prettier": "3.2.5",
+    "vitest": "1.2.2"
+  }
+}
