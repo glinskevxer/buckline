@@ -16,6 +16,12 @@
  * small log.
  */
 
+import {
+  requireNonNegative as checkNonNegative,
+  requirePositive as checkPositive,
+  round4,
+} from '../../num.js';
+
 import { ScaleError } from '../../errors.js';
 
 /**
@@ -26,6 +32,11 @@ import { ScaleError } from '../../errors.js';
  * fixed thirty percent of the departure to diameter ratio regardless of size,
  * which is easier to work in the woods and harder on large logs.
  */
+const wrap = (message, path) => new ScaleError(message, { path });
+
+const requireNonNegative = (name, value) => checkNonNegative(name, value, { wrap });
+const requirePositive = (name, value) => checkPositive(name, value, { wrap });
+
 export const SWEEP_ALLOWANCES = {
   quarter: {
     id: 'quarter',
@@ -117,24 +128,4 @@ export function worseOf(sweepBoardFeet, crookBoardFeet) {
   return sweepBoardFeet >= crookBoardFeet
     ? { taken: 'sweep', boardFeet: sweepBoardFeet }
     : { taken: 'crook', boardFeet: crookBoardFeet };
-}
-
-function requireNonNegative(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new ScaleError(`${name} must be a finite number`, { path: name });
-  }
-  if (value < 0) {
-    throw new ScaleError(`${name} must not be negative, got ${value}`, { path: name });
-  }
-}
-
-function requirePositive(name, value) {
-  requireNonNegative(name, value);
-  if (value === 0) {
-    throw new ScaleError(`${name} must be greater than zero`, { path: name });
-  }
-}
-
-function round4(value) {
-  return Math.round(value * 10000) / 10000;
 }

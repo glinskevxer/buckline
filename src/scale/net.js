@@ -21,6 +21,8 @@
  * from it.
  */
 
+import { round3 } from '../num.js';
+
 import { ScaleError } from '../errors.js';
 import { getRule, rulePolicy } from './rules/index.js';
 import { grossScale } from './gross.js';
@@ -187,8 +189,4 @@ function applyMethod(method, ruleId, diameterIn, lengthFt, defect) {
     default:
       throw new ScaleError(`cannot apply method ${method}`, { path: 'method' });
   }
-}
-
-function round3(value) {
-  return Math.round(value * 1000) / 1000;
 }

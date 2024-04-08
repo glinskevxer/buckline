@@ -9,6 +9,8 @@
  * crew for a bad cut.
  */
 
+import { round3 } from '../num.js';
+
 /** Nominal lengths a hardwood mill will take, shortest first. */
 export const HARDWOOD_NOMINAL_LENGTHS = [8, 9, 10, 11, 12, 13, 14, 15, 16];
 
@@ -116,8 +118,4 @@ export function nominalLengths(policy = 'hardwood') {
     throw new RangeError(`unknown trim policy ${policy}`);
   }
   return rule.lengths.slice();
-}
-
-function round3(value) {
-  return Math.round(value * 1000) / 1000;
 }

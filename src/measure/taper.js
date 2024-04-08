@@ -13,6 +13,8 @@
  * settles down.
  */
 
+import { requireFinite, requirePositive, round3 } from '../num.js';
+
 /** Typical taper in inches of diameter per foot, by log position. */
 export const TYPICAL_TAPER = {
   butt: 0.125,
@@ -113,21 +115,4 @@ export function trimButtSwell(smallEndIn, largeEndIn, lengthFt, options = {}) {
   if (lengthFt <= swellFt) return largeEndIn;
   const predicted = smallEndIn + taperPerFoot * lengthFt;
   return Math.min(largeEndIn, predicted);
-}
-
-function requireFinite(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(`${name} must be a finite number`);
-  }
-}
-
-function requirePositive(name, value) {
-  requireFinite(name, value);
-  if (value <= 0) {
-    throw new RangeError(`${name} must be greater than zero, got ${value}`);
-  }
-}
-
-function round3(value) {
-  return Math.round(value * 1000) / 1000;
 }

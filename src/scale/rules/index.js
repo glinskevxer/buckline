@@ -9,6 +9,8 @@
  * reason the deduction code cannot be written without knowing the rule first.
  */
 
+import { round4 } from '../../num.js';
+
 import { ContractError } from '../../errors.js';
 import * as doyle from './doyle.js';
 import * as international from './international.js';
@@ -96,8 +98,4 @@ export function crossoverDiameter(ruleId, lengthFt, options = {}) {
     }
   }
   return null;
-}
-
-function round4(value) {
-  return Math.round(value * 10000) / 10000;
 }

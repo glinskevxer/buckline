@@ -19,10 +19,16 @@
  * and the difference is not proportional.
  */
 
+import { requireNonNegative, round3 } from '../../num.js';
+
 import { ScaleError } from '../../errors.js';
 import { getRule } from '../rules/index.js';
 
 /** The divisor in the squared defect formula, which already allows for slab. */
+const wrap = (message, path) => new ScaleError(message, { path });
+
+const guard = (name, value) => requireNonNegative(name, value, { wrap });
+
 export const SQUARED_DIVISOR = 15;
 
 /**
@@ -31,7 +37,7 @@ export const SQUARED_DIVISOR = 15;
  */
 export function lengthDeduction(ruleId, diameterIn, lengthFt, affectedFt) {
   const rule = getRule(ruleId);
-  requireNonNegative('affectedFt', affectedFt);
+  guard('affectedFt', affectedFt);
   const whole = Math.ceil(affectedFt - 1e-9);
   const remaining = Math.max(0, lengthFt - whole);
   const before = rule.gross(diameterIn, lengthFt);
@@ -52,7 +58,7 @@ export function lengthDeduction(ruleId, diameterIn, lengthFt, affectedFt) {
  */
 export function diameterDeduction(ruleId, diameterIn, lengthFt, shellIn) {
   const rule = getRule(ruleId);
-  requireNonNegative('shellIn', shellIn);
+  guard('shellIn', shellIn);
   const soundDiameter = Math.max(0, Math.floor(diameterIn - 2 * shellIn));
   const before = rule.gross(diameterIn, lengthFt);
   const after = rule.gross(soundDiameter, lengthFt);
@@ -73,9 +79,9 @@ export function diameterDeduction(ruleId, diameterIn, lengthFt, shellIn) {
  */
 export function squaredDeduction(ruleId, diameterIn, lengthFt, defect) {
   const rule = getRule(ruleId);
-  const widthIn = requireNonNegative('widthIn', defect.widthIn ?? 0);
-  const depthIn = requireNonNegative('depthIn', defect.depthIn ?? 0);
-  const runFt = requireNonNegative('lengthFt', defect.lengthFt ?? 0);
+  const widthIn = guard('widthIn', defect.widthIn ?? 0);
+  const depthIn = guard('depthIn', defect.depthIn ?? 0);
+  const runFt = guard('lengthFt', defect.lengthFt ?? 0);
   const before = rule.gross(diameterIn, lengthFt);
   const raw = (widthIn * depthIn * runFt) / SQUARED_DIVISOR;
   const deduction = Math.min(raw, before);
@@ -91,7 +97,7 @@ export function squaredDeduction(ruleId, diameterIn, lengthFt, defect) {
 /** Percentage cull. `share` is a fraction between zero and one. */
 export function percentageDeduction(ruleId, diameterIn, lengthFt, share) {
   const rule = getRule(ruleId);
-  requireNonNegative('share', share);
+  guard('share', share);
   if (share > 1) {
     throw new ScaleError(`cull share must not exceed one, got ${share}`, { path: 'share' });
   }
@@ -113,17 +119,3 @@ export const METHODS = {
   squared: squaredDeduction,
   percentage: percentageDeduction,
 };
-
-function requireNonNegative(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new ScaleError(`${name} must be a finite number`, { path: name });
-  }
-  if (value < 0) {
-    throw new ScaleError(`${name} must not be negative, got ${value}`, { path: name });
-  }
-  return value;
-}
-
-function round3(value) {
-  return Math.round(value * 1000) / 1000;
-}

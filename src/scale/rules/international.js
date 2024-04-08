@@ -13,6 +13,8 @@
  * something else.
  */
 
+import { requireNonNegative, round3 } from '../../num.js';
+
 const SECTION_FT = 4;
 const TAPER_PER_SECTION_IN = 0.5;
 const A = 0.199;
@@ -27,7 +29,7 @@ export const smallestDiameterIn = 5;
 
 /** Volume of one full four foot section from its own small end diameter. */
 export function sectionVolume(diameterIn) {
-  requireNumber('diameterIn', diameterIn);
+  requireNonNegative('diameterIn', diameterIn);
   const value = A * diameterIn * diameterIn - B * diameterIn;
   return value > 0 ? value : 0;
 }
@@ -38,8 +40,8 @@ export function sectionVolume(diameterIn) {
  * the odd lengths.
  */
 export function gross(diameterIn, lengthFt) {
-  requireNumber('diameterIn', diameterIn);
-  requireNumber('lengthFt', lengthFt);
+  requireNonNegative('diameterIn', diameterIn);
+  requireNonNegative('lengthFt', lengthFt);
   if (lengthFt === 0) return 0;
 
   let total = 0;
@@ -62,8 +64,8 @@ export function scale(diameterIn, lengthFt) {
 
 /** The section by section breakdown, small end first, for an audit. */
 export function sections(diameterIn, lengthFt) {
-  requireNumber('diameterIn', diameterIn);
-  requireNumber('lengthFt', lengthFt);
+  requireNonNegative('diameterIn', diameterIn);
+  requireNonNegative('lengthFt', lengthFt);
   const out = [];
   let remaining = lengthFt;
   let sectionSmallEnd = diameterIn;
@@ -92,17 +94,4 @@ export function column(lengthFt, options = {}) {
     out.push({ diameterIn: d, boardFeet: scale(d, lengthFt) });
   }
   return out;
-}
-
-function requireNumber(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(`${name} must be a finite number`);
-  }
-  if (value < 0) {
-    throw new RangeError(`${name} must not be negative, got ${value}`);
-  }
-}
-
-function round3(value) {
-  return Math.round(value * 1000) / 1000;
 }

@@ -13,6 +13,8 @@
  * changes nothing at all.
  */
 
+import { round3, round4 } from '../num.js';
+
 import { ScaleError } from '../errors.js';
 import { getRule, rulePolicy } from './rules/index.js';
 import { ASSUMED_TAPER_PER_FOOT, segmentDiameters } from '../measure/taper.js';
@@ -99,12 +101,4 @@ function emptyResult(policy, reason) {
     taperSource: 'not used',
     reason,
   };
-}
-
-function round3(value) {
-  return Math.round(value * 1000) / 1000;
-}
-
-function round4(value) {
-  return Math.round(value * 10000) / 10000;
 }

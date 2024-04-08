@@ -9,6 +9,8 @@
  * wrong.
  */
 
+import { requirePositive } from '../num.js';
+
 /**
  * How the two cross sectional measurements are combined. A log is never round,
  * so the choice is worth real money on a big stick.
@@ -146,13 +148,4 @@ export function scalingDiameter(axes, options = {}) {
     insideBark: inside,
     scalingDiameter: scaling,
   };
-}
-
-function requirePositive(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(`${name} must be a finite number`);
-  }
-  if (value <= 0) {
-    throw new RangeError(`${name} must be greater than zero, got ${value}`);
-  }
 }

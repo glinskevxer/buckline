@@ -13,6 +13,8 @@
  * because the settlement has to match the contract, not because it is right.
  */
 
+import { requireNonNegative } from '../../num.js';
+
 const SLAB_ALLOWANCE_IN = 4;
 const DIVISOR = 16;
 
@@ -29,8 +31,8 @@ export const smallestDiameterIn = 6;
  * would otherwise produce.
  */
 export function gross(diameterIn, lengthFt) {
-  requireNumber('diameterIn', diameterIn);
-  requireNumber('lengthFt', lengthFt);
+  requireNonNegative('diameterIn', diameterIn);
+  requireNonNegative('lengthFt', lengthFt);
   if (diameterIn <= SLAB_ALLOWANCE_IN) return 0;
   const side = diameterIn - SLAB_ALLOWANCE_IN;
   return ((side * side) / DIVISOR) * lengthFt;
@@ -47,7 +49,7 @@ export function scale(diameterIn, lengthFt) {
  * does, and the recovery study uses it directly.
  */
 export function slabShare(diameterIn) {
-  requireNumber('diameterIn', diameterIn);
+  requireNonNegative('diameterIn', diameterIn);
   if (diameterIn <= 0) return 1;
   if (diameterIn <= SLAB_ALLOWANCE_IN) return 1;
   const inscribed = diameterIn - SLAB_ALLOWANCE_IN;
@@ -62,13 +64,4 @@ export function column(lengthFt, options = {}) {
     out.push({ diameterIn: d, boardFeet: scale(d, lengthFt) });
   }
   return out;
-}
-
-function requireNumber(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(`${name} must be a finite number`);
-  }
-  if (value < 0) {
-    throw new RangeError(`${name} must not be negative, got ${value}`);
-  }
 }

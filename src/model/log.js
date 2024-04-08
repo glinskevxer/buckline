@@ -9,6 +9,8 @@
  * and come out the same way twice.
  */
 
+import { round3, round4 } from '../num.js';
+
 import { lookupSpecies } from './species.js';
 import { scalingDiameter } from '../measure/diameter.js';
 import { scalingLength } from '../measure/length.js';
@@ -113,12 +115,4 @@ export function defectsOnFace(record, faceIndex) {
 export function describeLog(record) {
   const length = record.merchantable ? `${record.nominalLengthFt} ft` : 'short';
   return `${record.id} ${record.species} ${record.scalingDiameterIn} in x ${length}`;
-}
-
-function round3(value) {
-  return Math.round(value * 1000) / 1000;
-}
-
-function round4(value) {
-  return Math.round(value * 10000) / 10000;
 }

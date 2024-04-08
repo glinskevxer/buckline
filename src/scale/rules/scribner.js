@@ -17,6 +17,8 @@
  * The mill has always done it that way and the settlement clerk expects it.
  */
 
+import { requireNonNegative } from '../../num.js';
+
 const SIXTEEN_FOOT_COLUMN = {
   6: 10,
   7: 20,
@@ -67,7 +69,7 @@ export const largestDiameterIn = 40;
 
 /** The sixteen foot table entry, or null outside the table. */
 export function tableEntry(diameterIn) {
-  requireNumber('diameterIn', diameterIn);
+  requireNonNegative('diameterIn', diameterIn);
   const whole = Math.floor(diameterIn);
   return Object.prototype.hasOwnProperty.call(SIXTEEN_FOOT_COLUMN, whole)
     ? SIXTEEN_FOOT_COLUMN[whole]
@@ -81,8 +83,8 @@ export function tableEntry(diameterIn) {
  * separate negotiation anyway.
  */
 export function gross(diameterIn, lengthFt) {
-  requireNumber('diameterIn', diameterIn);
-  requireNumber('lengthFt', lengthFt);
+  requireNonNegative('diameterIn', diameterIn);
+  requireNonNegative('lengthFt', lengthFt);
   const whole = Math.floor(diameterIn);
   if (whole < smallestDiameterIn) return 0;
   const clamped = Math.min(whole, largestDiameterIn);
@@ -114,13 +116,4 @@ export function column(lengthFt, options = {}) {
     out.push({ diameterIn: d, boardFeet: scale(d, lengthFt), decimalC: decimalC(d, lengthFt) });
   }
   return out;
-}
-
-function requireNumber(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(`${name} must be a finite number`);
-  }
-  if (value < 0) {
-    throw new RangeError(`${name} must not be negative, got ${value}`);
-  }
 }

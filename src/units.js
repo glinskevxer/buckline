@@ -7,6 +7,8 @@
  * that involves a choice about how a log is measured belongs in src/measure.
  */
 
+import { requireFinite, requirePositive } from './num.js';
+
 /** A board foot is 144 cubic inches of lumber. */
 export const CUBIC_INCHES_PER_BOARD_FOOT = 144;
 
@@ -85,23 +87,4 @@ export function inchesFromQuarters(q) {
 /** Formats a quarter thickness the way it is written on a package tag. */
 export function formatQuarters(q) {
   return `${q}/4`;
-}
-
-function requireFinite(name, value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) {
-    throw new TypeError(`${name} must be a finite number, got ${describe(value)}`);
-  }
-}
-
-function requirePositive(name, value) {
-  requireFinite(name, value);
-  if (value <= 0) {
-    throw new RangeError(`${name} must be greater than zero, got ${value}`);
-  }
-}
-
-function describe(value) {
-  if (value === null) return 'null';
-  if (typeof value === 'number') return String(value);
-  return typeof value;
 }

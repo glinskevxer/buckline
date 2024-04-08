@@ -13,6 +13,8 @@
  * same, but the direction is always named.
  */
 
+import { round1, round4, sum } from '../num.js';
+
 import { ScaleError } from '../errors.js';
 
 /** Tolerances a check scale is judged against. */
@@ -127,16 +129,4 @@ export function scalerDrift(checks) {
 function direction(value) {
   if (Math.abs(value) < 1e-9) return 'level';
   return value > 0 ? 'check found more' : 'check found less';
-}
-
-function sum(values) {
-  return round1(values.reduce((total, value) => total + value, 0));
-}
-
-function round1(value) {
-  return Math.round(value * 10) / 10;
-}
-
-function round4(value) {
-  return Math.round(value * 10000) / 10000;
 }

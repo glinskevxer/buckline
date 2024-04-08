@@ -12,6 +12,8 @@
  * ticket.
  */
 
+import { round1, round4, sum } from '../num.js';
+
 import { ScaleError } from '../errors.js';
 import { rulePolicy } from './rules/index.js';
 import { netScale } from './net.js';
@@ -99,16 +101,4 @@ function groupBy(logs, lines, keyOf) {
       netBoardFeet: round1(bucket.netBoardFeet),
     }))
     .sort((a, b) => b.netBoardFeet - a.netBoardFeet || a.key.localeCompare(b.key));
-}
-
-function sum(values) {
-  return round1(values.reduce((total, value) => total + value, 0));
-}
-
-function round1(value) {
-  return Math.round(value * 10) / 10;
-}
-
-function round4(value) {
-  return Math.round(value * 10000) / 10000;
 }
