@@ -13,6 +13,7 @@
  * on that board settles it.
  */
 
+import { countBy, byDescending } from '../collect.js';
 import { GradeError } from '../errors.js';
 import { RULE_BOOKS, lookupSpecies, ruleBookFor } from '../model/species.js';
 import { gradeBoard } from './lumber/grade.js';
@@ -75,11 +76,7 @@ export function grade(board, options = {}) {
 /** Grades a tally and counts what came out of it. */
 export function gradeTally(boards, options = {}) {
   const results = boards.map((board) => grade(board, options));
-  const counts = new Map();
-  for (const result of results) {
-    const key = `${result.book}:${result.grade ?? 'none'}`;
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
+  const counts = countBy(results, (result) => `${result.book}:${result.grade ?? 'none'}`);
   return {
     results,
     byGrade: [...counts.entries()]
@@ -87,7 +84,7 @@ export function gradeTally(boards, options = {}) {
         const [book, gradeName] = key.split(':');
         return { book, grade: gradeName, count };
       })
-      .sort((a, b) => b.count - a.count || a.grade.localeCompare(b.grade)),
+      .sort(byDescending('count', (row) => row.grade)),
     ungraded: results.filter((result) => result.grade === null).length,
   };
 }

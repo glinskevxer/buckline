@@ -12,6 +12,7 @@
  * ticket.
  */
 
+import { byDescending, summarize } from '../collect.js';
 import { round1, round4, sum } from '../num.js';
 
 import { ScaleError } from '../errors.js';
@@ -84,21 +85,16 @@ export function cullReport(ticket) {
 }
 
 function groupBy(logs, lines, keyOf) {
-  const out = new Map();
-  logs.forEach((log, index) => {
-    const line = lines[index];
-    const key = keyOf(log);
-    const bucket = out.get(key) ?? { key, logCount: 0, grossBoardFeet: 0, netBoardFeet: 0 };
-    bucket.logCount += 1;
-    bucket.grossBoardFeet += line.grossBoardFeet;
-    bucket.netBoardFeet += line.cull ? 0 : line.netBoardFeet;
-    out.set(key, bucket);
-  });
-  return [...out.values()]
+  const paired = logs.map((log, index) => ({ log, line: lines[index] }));
+  return summarize(paired, (pair) => keyOf(pair.log), {
+    grossBoardFeet: (pair) => pair.line.grossBoardFeet,
+    netBoardFeet: (pair) => (pair.line.cull ? 0 : pair.line.netBoardFeet),
+  })
     .map((bucket) => ({
-      ...bucket,
+      key: bucket.key,
+      logCount: bucket.count,
       grossBoardFeet: round1(bucket.grossBoardFeet),
       netBoardFeet: round1(bucket.netBoardFeet),
     }))
-    .sort((a, b) => b.netBoardFeet - a.netBoardFeet || a.key.localeCompare(b.key));
+    .sort(byDescending('netBoardFeet'));
 }

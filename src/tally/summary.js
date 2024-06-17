@@ -10,6 +10,7 @@
  * and neither is called "the" recovery.
  */
 
+import { byDescending, byOrder, summarize } from '../collect.js';
 import { round2, round4 } from '../num.js';
 import { TallyError } from './unit.js';
 
@@ -18,34 +19,23 @@ import { TallyError } from './unit.js';
  */
 export function byGrade(entries, options = {}) {
   const { order = null } = options;
-  const buckets = new Map();
-  for (const entry of entries) {
-    const key = entry.grade ?? 'ungraded';
-    const bucket = buckets.get(key) ?? { grade: key, pieces: 0, boardFeet: 0 };
-    bucket.pieces += 1;
-    bucket.boardFeet += entry.boardFeet ?? 0;
-    buckets.set(key, bucket);
-  }
+  const buckets = summarize(entries, (entry) => entry.grade ?? 'ungraded', {
+    boardFeet: (entry) => entry.boardFeet,
+  });
 
-  const totalFeet = [...buckets.values()].reduce((sum, bucket) => sum + bucket.boardFeet, 0);
-  const totalPieces = [...buckets.values()].reduce((sum, bucket) => sum + bucket.pieces, 0);
+  const totalFeet = buckets.reduce((total, bucket) => total + bucket.boardFeet, 0);
+  const totalPieces = buckets.reduce((total, bucket) => total + bucket.count, 0);
 
-  const rows = [...buckets.values()].map((bucket) => ({
-    grade: bucket.grade,
-    pieces: bucket.pieces,
+  const rows = buckets.map((bucket) => ({
+    grade: bucket.key,
+    pieces: bucket.count,
     boardFeet: round2(bucket.boardFeet),
     footageShare: totalFeet > 0 ? round4(bucket.boardFeet / totalFeet) : 0,
-    pieceShare: totalPieces > 0 ? round4(bucket.pieces / totalPieces) : 0,
+    pieceShare: totalPieces > 0 ? round4(bucket.count / totalPieces) : 0,
   }));
 
-  if (order) {
-    const rank = (grade) => {
-      const index = order.indexOf(grade);
-      return index === -1 ? order.length : index;
-    };
-    return rows.sort((a, b) => rank(a.grade) - rank(b.grade) || a.grade.localeCompare(b.grade));
-  }
-  return rows.sort((a, b) => b.boardFeet - a.boardFeet || a.grade.localeCompare(b.grade));
+  const key = (row) => row.grade;
+  return rows.sort(order ? byOrder(order, key) : byDescending('boardFeet', key));
 }
 
 /**
@@ -79,16 +69,14 @@ export function recovery(entries, onGrade) {
 
 /** Footage split by thickness, which is what the kiln schedules off. */
 export function byThickness(entries) {
-  const buckets = new Map();
-  for (const entry of entries) {
-    const key = entry.quarters ?? 0;
-    const bucket = buckets.get(key) ?? { quarters: key, pieces: 0, boardFeet: 0 };
-    bucket.pieces += 1;
-    bucket.boardFeet += entry.boardFeet ?? 0;
-    buckets.set(key, bucket);
-  }
-  return [...buckets.values()]
-    .map((bucket) => ({ ...bucket, boardFeet: round2(bucket.boardFeet) }))
+  return summarize(entries, (entry) => entry.quarters ?? 0, {
+    boardFeet: (entry) => entry.boardFeet,
+  })
+    .map((bucket) => ({
+      quarters: bucket.key,
+      pieces: bucket.count,
+      boardFeet: round2(bucket.boardFeet),
+    }))
     .sort((a, b) => a.quarters - b.quarters);
 }
 

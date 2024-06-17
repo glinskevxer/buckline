@@ -13,6 +13,7 @@
  * nothing else changes.
  */
 
+import { byDescending, countBy } from '../../collect.js';
 import { GradeError } from '../../errors.js';
 import { lookupSpecies } from '../../model/species.js';
 import { factoryGrade } from './usfs.js';
@@ -98,16 +99,12 @@ export function gradeLog(log, options = {}) {
 /** Grades a whole load and counts what came out of it. */
 export function gradeLoad(logs, options = {}) {
   const results = logs.map((log) => gradeLog(log, options));
-  const counts = new Map();
-  for (const result of results) {
-    const key = result.grade ?? 'no market';
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
+  const counts = countBy(results, (result) => result.grade ?? 'no market');
   return {
     results,
     byGrade: [...counts.entries()]
       .map(([grade, count]) => ({ grade, count }))
-      .sort((a, b) => b.count - a.count || a.grade.localeCompare(b.grade)),
+      .sort(byDescending('count', (row) => row.grade)),
     ungraded: results.filter((result) => result.grade === null).length,
   };
 }
