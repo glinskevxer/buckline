@@ -184,7 +184,8 @@ function finish(pattern, log, boards, settings) {
     boards,
     boardCount: boards.length,
     boardFeet: round2(total),
-    averageWidthIn: widths.length > 0 ? round2(widths.reduce((a, b) => a + b, 0) / widths.length) : 0,
+    averageWidthIn:
+      widths.length > 0 ? round2(widths.reduce((a, b) => a + b, 0) / widths.length) : 0,
     widestIn: widths.length > 0 ? Math.max(...widths) : 0,
     settings,
   };

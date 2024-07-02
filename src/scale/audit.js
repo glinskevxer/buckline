@@ -46,7 +46,8 @@ export function checkScale(original, check, options = {}) {
       continue;
     }
     const difference = line.netBoardFeet - first.netBoardFeet;
-    const share = first.netBoardFeet === 0 ? (difference === 0 ? 0 : 1) : difference / first.netBoardFeet;
+    const share =
+      first.netBoardFeet === 0 ? (difference === 0 ? 0 : 1) : difference / first.netBoardFeet;
     comparisons.push({
       logId: line.logId,
       originalNet: first.netBoardFeet,

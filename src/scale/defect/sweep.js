@@ -76,10 +76,9 @@ export function sweepShare(diameterIn, lengthFt, departureIn, options = {}) {
   const sweptLengthFt = options.sweptLengthFt ?? lengthFt;
   requireNonNegative('sweptLengthFt', sweptLengthFt);
   if (sweptLengthFt > lengthFt + 1e-9) {
-    throw new ScaleError(
-      `swept length ${sweptLengthFt} runs past a ${lengthFt} foot log`,
-      { path: 'sweptLengthFt' }
-    );
+    throw new ScaleError(`swept length ${sweptLengthFt} runs past a ${lengthFt} foot log`, {
+      path: 'sweptLengthFt',
+    });
   }
 
   const ratio = departureIn / diameterIn;

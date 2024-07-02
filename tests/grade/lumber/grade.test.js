@@ -26,9 +26,7 @@ describe('readFaceAtGrade', () => {
   });
 
   it('says how far short a face fell', () => {
-    const knotty = board([
-      { type: 'knot', startFt: 0, lengthFt: 12, fromEdgeIn: 3, widthIn: 2 },
-    ]);
+    const knotty = board([{ type: 'knot', startFt: 0, lengthFt: 12, fromEdgeIn: 3, widthIn: 2 }]);
     const result = readFaceAtGrade(knotty, 0, 'FAS');
     expect(result.meets).toBe(false);
     expect(result.shortBy).toBeGreaterThan(0);

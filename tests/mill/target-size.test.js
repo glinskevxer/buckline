@@ -74,11 +74,7 @@ describe('shrinkageAllowanceIn', () => {
 describe('targetThickness', () => {
   it('itemises every allowance', () => {
     const result = targetThickness(request);
-    expect(Object.keys(result.allowances).sort()).toEqual([
-      'planingIn',
-      'sawingIn',
-      'shrinkageIn',
-    ]);
+    expect(Object.keys(result.allowances).sort()).toEqual(['planingIn', 'sawingIn', 'shrinkageIn']);
   });
 
   it('adds up to the target', () => {
@@ -121,7 +117,9 @@ describe('targetThickness', () => {
   });
 
   it('refuses a nonsense request', () => {
-    expect(() => targetThickness({ species: 'red oak', finishedThicknessIn: 0 })).toThrow(MillError);
+    expect(() => targetThickness({ species: 'red oak', finishedThicknessIn: 0 })).toThrow(
+      MillError
+    );
     expect(() => targetThickness({ ...request, surfacing: 'polished' })).toThrow(MillError);
     expect(() => targetThickness({ ...request, coverageSigma: -1 })).toThrow(MillError);
   });

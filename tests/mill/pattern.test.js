@@ -112,7 +112,9 @@ describe('gradeSaw', () => {
   });
 
   it('takes fewer still when the log is turned more often', () => {
-    expect(gradeSaw(log, { turns: 6 }).boardCount).toBeLessThan(gradeSaw(log, { turns: 2 }).boardCount);
+    expect(gradeSaw(log, { turns: 6 }).boardCount).toBeLessThan(
+      gradeSaw(log, { turns: 2 }).boardCount
+    );
   });
 });
 
@@ -168,6 +170,10 @@ describe('comparePatterns', () => {
   });
 
   it('covers every pattern', () => {
-    expect(comparePatterns(log).map((row) => row.pattern).sort()).toEqual([...PATTERNS].sort());
+    expect(
+      comparePatterns(log)
+        .map((row) => row.pattern)
+        .sort()
+    ).toEqual([...PATTERNS].sort());
   });
 });

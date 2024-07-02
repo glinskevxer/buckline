@@ -53,11 +53,18 @@ export function widthAt(species, greenWidthIn, fromMoisturePct, toMoisturePct) {
 }
 
 /** Thickness after drying. Quartersawn stock moves radially in thickness. */
-export function thicknessAt(species, greenThicknessIn, fromMoisturePct, toMoisturePct, options = {}) {
+export function thicknessAt(
+  species,
+  greenThicknessIn,
+  fromMoisturePct,
+  toMoisturePct,
+  options = {}
+) {
   const { quartersawn = false } = options;
   const entry = lookupSpecies(species);
   const pct = quartersawn ? entry.shrinkTangentialPct : entry.shrinkRadialPct;
-  const movement = (shrinkageProgress(toMoisturePct) - shrinkageProgress(fromMoisturePct)) * (pct / 100);
+  const movement =
+    (shrinkageProgress(toMoisturePct) - shrinkageProgress(fromMoisturePct)) * (pct / 100);
   return round3(greenThicknessIn * (1 - movement));
 }
 
@@ -119,7 +126,9 @@ export function ovenDryMoisture(wetWeightG, dryWeightG) {
     throw new KilnError('oven dry weight must be positive', { path: 'dryWeightG' });
   }
   if (wetWeightG < dryWeightG) {
-    throw new KilnError('the wet sample cannot weigh less than the dry one', { path: 'wetWeightG' });
+    throw new KilnError('the wet sample cannot weigh less than the dry one', {
+      path: 'wetWeightG',
+    });
   }
   return round1(((wetWeightG - dryWeightG) / dryWeightG) * 100);
 }

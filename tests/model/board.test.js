@@ -102,7 +102,10 @@ describe('makeBoard', () => {
 
   it('refuses a defect on a third face', () => {
     expect(() =>
-      makeBoard({ ...raw, defects: [{ type: 'knot', face: 2, startFt: 1, lengthFt: 1, widthIn: 1 }] })
+      makeBoard({
+        ...raw,
+        defects: [{ type: 'knot', face: 2, startFt: 1, lengthFt: 1, widthIn: 1 }],
+      })
     ).toThrow(ValidationError);
   });
 

@@ -75,12 +75,18 @@ describe('byOrder', () => {
 
 describe('byDescending', () => {
   it('puts the biggest first', () => {
-    const sorted = [{ key: 'a', n: 1 }, { key: 'b', n: 3 }].sort(byDescending('n'));
+    const sorted = [
+      { key: 'a', n: 1 },
+      { key: 'b', n: 3 },
+    ].sort(byDescending('n'));
     expect(sorted.map((row) => row.key)).toEqual(['b', 'a']);
   });
 
   it('breaks a tie on the key so the order is stable across modules', () => {
-    const sorted = [{ key: 'b', n: 1 }, { key: 'a', n: 1 }].sort(byDescending('n'));
+    const sorted = [
+      { key: 'b', n: 1 },
+      { key: 'a', n: 1 },
+    ].sort(byDescending('n'));
     expect(sorted.map((row) => row.key)).toEqual(['a', 'b']);
   });
 });

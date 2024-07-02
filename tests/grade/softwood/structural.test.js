@@ -135,9 +135,9 @@ describe('gradePiece', () => {
   });
 
   it('treats unrecorded slope as no problem', () => {
-    expect(gradePiece({ widthIn: 3.5 }).readings.find((r) => r.characteristic === 'slope of grain').grade).toBe(
-      'SS'
-    );
+    expect(
+      gradePiece({ widthIn: 3.5 }).readings.find((r) => r.characteristic === 'slope of grain').grade
+    ).toBe('SS');
   });
 
   it('refuses a piece with no width', () => {

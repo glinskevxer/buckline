@@ -84,13 +84,15 @@ export function gradePiece(piece) {
   ];
 
   const worstIndex = readings.reduce((worst, reading) => {
-    const index = reading.grade === null ? STRUCTURAL_GRADES.length : STRUCTURAL_GRADES.indexOf(reading.grade);
+    const index =
+      reading.grade === null ? STRUCTURAL_GRADES.length : STRUCTURAL_GRADES.indexOf(reading.grade);
     return Math.max(worst, index);
   }, 0);
 
   const grade = worstIndex >= STRUCTURAL_GRADES.length ? null : STRUCTURAL_GRADES[worstIndex];
   const governing = readings.filter((reading) => {
-    const index = reading.grade === null ? STRUCTURAL_GRADES.length : STRUCTURAL_GRADES.indexOf(reading.grade);
+    const index =
+      reading.grade === null ? STRUCTURAL_GRADES.length : STRUCTURAL_GRADES.indexOf(reading.grade);
     return index === worstIndex;
   });
 

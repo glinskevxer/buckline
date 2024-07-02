@@ -72,7 +72,9 @@ export function shapeRisk(pile) {
   let risk = stickerSpacingIn / MAX_STICKER_SPACING_IN;
   const notes = [];
   if (stickerSpacingIn > MAX_STICKER_SPACING_IN) {
-    notes.push(`stickers ${stickerSpacingIn} inches apart, over the ${MAX_STICKER_SPACING_IN} inch limit`);
+    notes.push(
+      `stickers ${stickerSpacingIn} inches apart, over the ${MAX_STICKER_SPACING_IN} inch limit`
+    );
   }
   if (stickerThicknessIn < 0.5) {
     risk *= 1.3;
@@ -137,7 +139,12 @@ function band(risk) {
 export function degradeCost(kind, boardFeet) {
   if (DEGRADE_KINDS.stress.includes(kind)) {
     const share = kind === 'honeycomb' || kind === 'collapse' ? 1 : 0.4;
-    return { kind, family: 'stress', lostBoardFeet: round2(boardFeet * share), recoverable: share < 1 };
+    return {
+      kind,
+      family: 'stress',
+      lostBoardFeet: round2(boardFeet * share),
+      recoverable: share < 1,
+    };
   }
   if (DEGRADE_KINDS.shape.includes(kind)) {
     const share = kind === 'twist' ? 0.5 : 0.25;

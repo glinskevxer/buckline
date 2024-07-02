@@ -72,7 +72,12 @@ export function methodFor(defectId, ruleId, options = {}) {
   }
 
   if (entry.prefers === 'none') {
-    return { method: 'none', because: 'catalogue says it costs nothing', defect: entry.id, rule: policy.id };
+    return {
+      method: 'none',
+      because: 'catalogue says it costs nothing',
+      defect: entry.id,
+      rule: policy.id,
+    };
   }
 
   if (entry.extent === 'whole log') {

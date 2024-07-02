@@ -70,7 +70,10 @@ describe('append', () => {
 describe('load', () => {
   it('reads back what was written', () => {
     const first = openJournal(path);
-    first.append([{ kind: 'tract.opened', tractId: 'T-7' }, { kind: 'load.arrived', loadId: 'LD-1' }]);
+    first.append([
+      { kind: 'tract.opened', tractId: 'T-7' },
+      { kind: 'load.arrived', loadId: 'LD-1' },
+    ]);
 
     const second = openJournal(path);
     expect(second.length).toBe(2);

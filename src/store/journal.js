@@ -17,7 +17,15 @@
  * happened is worse than one that did not happen.
  */
 
-import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, writeSync } from 'node:fs';
+import {
+  closeSync,
+  existsSync,
+  fsyncSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  writeSync,
+} from 'node:fs';
 import { dirname } from 'node:path';
 import { BucklineError } from '../errors.js';
 

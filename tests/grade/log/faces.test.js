@@ -114,11 +114,7 @@ describe('readFace', () => {
   });
 
   it('throws away a cutting shorter than the minimum', () => {
-    const face = readFace(
-      log([{ type: 'hole', faceIndex: 0, startFt: 2, lengthFt: 1 }]),
-      0,
-      req
-    );
+    const face = readFace(log([{ type: 'hole', faceIndex: 0, startFt: 2, lengthFt: 1 }]), 0, req);
     expect(face.rejectedCount).toBe(1);
     expect(face.clearFt).toBe(9);
   });
@@ -149,28 +145,24 @@ describe('readFace', () => {
   });
 
   it('fails a face that does not yield enough', () => {
-    const face = readFace(
-      log([{ type: 'hole', faceIndex: 0, startFt: 4, lengthFt: 6 }]),
-      0,
-      req
-    );
+    const face = readFace(log([{ type: 'hole', faceIndex: 0, startFt: 4, lengthFt: 6 }]), 0, req);
     expect(face.yieldShare).toBeLessThan(2 / 3);
     expect(face.passes).toBe(false);
   });
 
   it('fails a face with nothing long enough to cut', () => {
-    const face = readFace(
-      log([{ type: 'hole', faceIndex: 0, startFt: 0, lengthFt: 11 }]),
-      0,
-      req
-    );
+    const face = readFace(log([{ type: 'hole', faceIndex: 0, startFt: 0, lengthFt: 11 }]), 0, req);
     expect(face.cuttingCount).toBe(0);
     expect(face.passes).toBe(false);
   });
 
   it('changes its answer when the minimum cutting length changes', () => {
     const defects = [{ type: 'hole', faceIndex: 0, startFt: 5, lengthFt: 1 }];
-    const short = readFace(log(defects), 0, { minCuttingFt: 3, maxCuttings: 2, minYieldShare: 0.9 });
+    const short = readFace(log(defects), 0, {
+      minCuttingFt: 3,
+      maxCuttings: 2,
+      minYieldShare: 0.9,
+    });
     const long = readFace(log(defects), 0, { minCuttingFt: 7, maxCuttings: 2, minYieldShare: 0.9 });
     expect(short.clearFt).toBe(11);
     expect(long.clearFt).toBe(0);

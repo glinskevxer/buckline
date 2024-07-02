@@ -67,7 +67,8 @@ function walkObject(value, shape, path, issues) {
     const raw = present ? value[key] : undefined;
     if (raw === undefined || raw === null) {
       if (descriptor.default !== undefined) {
-        out[key] = typeof descriptor.default === 'function' ? descriptor.default() : descriptor.default;
+        out[key] =
+          typeof descriptor.default === 'function' ? descriptor.default() : descriptor.default;
       } else if (descriptor.optional) {
         continue;
       } else {

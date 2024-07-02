@@ -51,10 +51,14 @@ export function veneerGrade(log, options = {}) {
     reasons.push(`${species.key} is not a veneer species`);
   }
   if (log.scalingDiameterIn < VENEER.minDiameterIn) {
-    reasons.push(`scaling diameter ${log.scalingDiameterIn} is under the ${VENEER.minDiameterIn} inch veneer floor`);
+    reasons.push(
+      `scaling diameter ${log.scalingDiameterIn} is under the ${VENEER.minDiameterIn} inch veneer floor`
+    );
   }
   if (log.nominalLengthFt < VENEER.minLengthFt) {
-    reasons.push(`length ${log.nominalLengthFt} is under the ${VENEER.minLengthFt} foot veneer floor`);
+    reasons.push(
+      `length ${log.nominalLengthFt} is under the ${VENEER.minLengthFt} foot veneer floor`
+    );
   }
 
   for (const defect of log.defects ?? []) {
@@ -65,7 +69,9 @@ export function veneerGrade(log, options = {}) {
 
   const sweep = (log.defects ?? []).find((defect) => defect.type === 'sweep');
   if (sweep && (sweep.depthIn ?? 0) > VENEER.maxSweepIn) {
-    reasons.push(`sweep of ${sweep.depthIn} inches is over the ${VENEER.maxSweepIn} inch veneer limit`);
+    reasons.push(
+      `sweep of ${sweep.depthIn} inches is over the ${VENEER.maxSweepIn} inch veneer limit`
+    );
   }
 
   const zone = gradingZone(log, options);
@@ -76,7 +82,9 @@ export function veneerGrade(log, options = {}) {
     if (whole) clearFaces.push(index);
   }
   if (clearFaces.length < VENEER.facesRequired) {
-    reasons.push(`${clearFaces.length} entirely clear faces of the ${VENEER.facesRequired} veneer needs`);
+    reasons.push(
+      `${clearFaces.length} entirely clear faces of the ${VENEER.facesRequired} veneer needs`
+    );
   }
 
   return {

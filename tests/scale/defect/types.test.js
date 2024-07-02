@@ -88,14 +88,7 @@ describe('soundness and visibility', () => {
 
 describe('kinds', () => {
   it('lists the kinds it uses', () => {
-    expect(defectKinds()).toEqual([
-      'decay',
-      'foreign',
-      'form',
-      'knot',
-      'separation',
-      'wound',
-    ]);
+    expect(defectKinds()).toEqual(['decay', 'foreign', 'form', 'knot', 'separation', 'wound']);
   });
 
   it('partitions the catalogue', () => {

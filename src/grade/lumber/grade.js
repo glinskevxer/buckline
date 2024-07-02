@@ -62,9 +62,15 @@ export function readFaceAtGrade(board, face, grade) {
       shortBy: meets ? 0 : round3(required - found.units),
       allowance,
       cuttings: found.cuttings,
-      reason: meets ? null : `${found.units} cutting units of the ${round3(required)} ${grade} needs`,
+      reason: meets
+        ? null
+        : `${found.units} cutting units of the ${round3(required)} ${grade} needs`,
     };
-    if (!best || (attempt.meets && !best.meets) || (attempt.meets === best.meets && attempt.units > best.units)) {
+    if (
+      !best ||
+      (attempt.meets && !best.meets) ||
+      (attempt.meets === best.meets && attempt.units > best.units)
+    ) {
       best = attempt;
     }
     if (meets && !allowance.extra) break;

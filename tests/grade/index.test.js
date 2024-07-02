@@ -105,12 +105,7 @@ describe('gradeTally', () => {
 
   it('grades every board under its own book', () => {
     const result = gradeTally(boards);
-    expect(result.results.map((r) => r.book)).toEqual([
-      'nhla',
-      'nhla',
-      'structural',
-      'structural',
-    ]);
+    expect(result.results.map((r) => r.book)).toEqual(['nhla', 'nhla', 'structural', 'structural']);
   });
 
   it('counts grades within their own book', () => {

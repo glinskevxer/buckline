@@ -26,9 +26,7 @@ const pile = (over = {}) => ({
 
 describe('stressRisk', () => {
   it('rises with thickness', () => {
-    expect(stressRisk(charge({ thicknessIn: 2 })).risk).toBeGreaterThan(
-      stressRisk(charge()).risk
-    );
+    expect(stressRisk(charge({ thicknessIn: 2 })).risk).toBeGreaterThan(stressRisk(charge()).risk);
   });
 
   it('rises with density', () => {
@@ -62,9 +60,7 @@ describe('stressRisk', () => {
 
 describe('shapeRisk', () => {
   it('rises as the stickers get further apart', () => {
-    expect(shapeRisk(pile({ stickerSpacingIn: 48 })).risk).toBeGreaterThan(
-      shapeRisk(pile()).risk
-    );
+    expect(shapeRisk(pile({ stickerSpacingIn: 48 })).risk).toBeGreaterThan(shapeRisk(pile()).risk);
   });
 
   it('flags stickers past the limit', () => {

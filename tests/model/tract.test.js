@@ -41,9 +41,9 @@ describe('makeTract', () => {
   });
 
   it('refuses a sweep allowance that is not one of ours', () => {
-    expect(() => makeTract({ ...raw, contract: { rule: 'doyle', sweepAllowance: 'generous' } })).toThrow(
-      ValidationError
-    );
+    expect(() =>
+      makeTract({ ...raw, contract: { rule: 'doyle', sweepAllowance: 'generous' } })
+    ).toThrow(ValidationError);
   });
 
   it('turns the override list into the map the policy layer wants', () => {

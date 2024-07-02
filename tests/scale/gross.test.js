@@ -117,11 +117,7 @@ describe('grossScaleAll', () => {
   });
 
   it('keeps the log id on every entry', () => {
-    expect(grossScaleAll(logs, 'doyle').entries.map((e) => e.logId)).toEqual([
-      'L-1',
-      'L-2',
-      'L-3',
-    ]);
+    expect(grossScaleAll(logs, 'doyle').entries.map((e) => e.logId)).toEqual(['L-1', 'L-2', 'L-3']);
   });
 
   it('refuses anything that is not a list', () => {

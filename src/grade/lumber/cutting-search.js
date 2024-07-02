@@ -30,7 +30,9 @@ export function clearBands(board, face, startFt, endFt) {
   if (endFt <= startFt) return [];
   const blocked = (board.defects ?? [])
     .filter((defect) => defect.face === face)
-    .filter((defect) => defect.startFt < endFt - 1e-9 && defect.startFt + defect.lengthFt > startFt + 1e-9)
+    .filter(
+      (defect) => defect.startFt < endFt - 1e-9 && defect.startFt + defect.lengthFt > startFt + 1e-9
+    )
     .map((defect) => ({
       fromIn: Math.max(0, defect.fromEdgeIn),
       toIn: Math.min(board.widthIn, defect.fromEdgeIn + defect.widthIn),

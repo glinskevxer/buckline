@@ -186,13 +186,19 @@ export function dimensionsAllow(grade, board) {
   const spec = lumberSpec(grade);
   const reasons = [];
   if (board.widthIn < spec.minWidthIn) {
-    reasons.push(`${board.widthIn} inches is under the ${spec.minWidthIn} inch minimum for ${grade}`);
+    reasons.push(
+      `${board.widthIn} inches is under the ${spec.minWidthIn} inch minimum for ${grade}`
+    );
   }
   if (board.lengthFt < spec.minLengthFt) {
-    reasons.push(`${board.lengthFt} feet is under the ${spec.minLengthFt} foot minimum for ${grade}`);
+    reasons.push(
+      `${board.lengthFt} feet is under the ${spec.minLengthFt} foot minimum for ${grade}`
+    );
   }
   if (board.lengthFt > spec.maxLengthFt) {
-    reasons.push(`${board.lengthFt} feet is over the ${spec.maxLengthFt} foot maximum for ${grade}`);
+    reasons.push(
+      `${board.lengthFt} feet is over the ${spec.maxLengthFt} foot maximum for ${grade}`
+    );
   }
   if (board.surfaceMeasure < spec.minSurfaceMeasure) {
     reasons.push(

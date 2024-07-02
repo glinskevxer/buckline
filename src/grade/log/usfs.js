@@ -118,7 +118,9 @@ export function meetsGrade(log, grade, options = {}) {
     reasons.push(`${grade} takes ${spec.positions.join(' or ')} logs, this is ${log.position}`);
   }
   if (log.scalingDiameterIn < spec.minDiameterIn) {
-    reasons.push(`scaling diameter ${log.scalingDiameterIn} is under the ${spec.minDiameterIn} inch floor`);
+    reasons.push(
+      `scaling diameter ${log.scalingDiameterIn} is under the ${spec.minDiameterIn} inch floor`
+    );
   }
   if (log.nominalLengthFt < spec.minLengthFt) {
     reasons.push(`length ${log.nominalLengthFt} is under the ${spec.minLengthFt} foot floor`);

@@ -39,9 +39,7 @@ describe('veneerGrade', () => {
 
   it('lets one small defect ruin the face it is on', () => {
     const result = veneerGrade(
-      log('black walnut', 22, 12, [
-        { type: 'sound knot', faceIndex: 0, startFt: 5, lengthFt: 0.2 },
-      ])
+      log('black walnut', 22, 12, [{ type: 'sound knot', faceIndex: 0, startFt: 5, lengthFt: 0.2 }])
     );
     expect(result.clearFaces).toEqual([1, 2, 3]);
     expect(result.grade).toBe('veneer');
@@ -127,12 +125,7 @@ describe('tieGrade', () => {
 
   it('sorts the candidates by area', () => {
     const result = tieGrade(log('white oak', 22, 12));
-    expect(result.candidates).toEqual([
-      'grade 5 tie',
-      'switch tie',
-      'grade 4 tie',
-      'grade 3 tie',
-    ]);
+    expect(result.candidates).toEqual(['grade 5 tie', 'switch tie', 'grade 4 tie', 'grade 3 tie']);
   });
 
   it('can be given a different size list', () => {

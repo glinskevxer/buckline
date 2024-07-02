@@ -55,10 +55,9 @@ export class Projection {
 
   applyEntry(entry) {
     if (entry.seq <= this.lastSeq) {
-      throw new ProjectionError(
-        `projection ${this.name} has already seen sequence ${entry.seq}`,
-        { path: this.name }
-      );
+      throw new ProjectionError(`projection ${this.name} has already seen sequence ${entry.seq}`, {
+        path: this.name,
+      });
     }
     const handler = this.handlers[entry.kind];
     if (handler) {

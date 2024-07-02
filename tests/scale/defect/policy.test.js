@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { ScaleError } from '../../../src/errors.js';
-import { isMeasurable, methodFor, methodNames, methodsFor } from '../../../src/scale/defect/policy.js';
+import {
+  isMeasurable,
+  methodFor,
+  methodNames,
+  methodsFor,
+} from '../../../src/scale/defect/policy.js';
 
 describe('the rule decides where it can', () => {
   it('squares a catface under doyle and cuts it out on the length under international', () => {
@@ -79,9 +84,9 @@ describe('contract overrides', () => {
   });
 
   it('can pin a method for a defect that would otherwise cost nothing', () => {
-    expect(methodFor('sound knot', 'doyle', { overrides: { 'sound knot': 'squared' } }).method).toBe(
-      'squared'
-    );
+    expect(
+      methodFor('sound knot', 'doyle', { overrides: { 'sound knot': 'squared' } }).method
+    ).toBe('squared');
   });
 
   it('refuses a pinned method the defect cannot be measured by', () => {
@@ -91,7 +96,9 @@ describe('contract overrides', () => {
   });
 
   it('refuses a pinned method nobody implements', () => {
-    expect(() => methodFor('hole', 'doyle', { overrides: { hole: 'eyeball' } })).toThrow(ScaleError);
+    expect(() => methodFor('hole', 'doyle', { overrides: { hole: 'eyeball' } })).toThrow(
+      ScaleError
+    );
   });
 
   it('does not pick up an inherited property as an override', () => {

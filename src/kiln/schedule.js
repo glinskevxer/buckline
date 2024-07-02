@@ -106,11 +106,12 @@ export function scheduleFor(species, thicknessIn) {
   const thick = thicknessIn >= 1.75;
 
   if (dense || thick) {
-    const because = dense && thick
-      ? `${entry.key} is dense and ${thicknessIn} inch stock is thick`
-      : dense
-        ? `${entry.key} is dense at ${entry.densityLbPerFt3} pounds`
-        : `${thicknessIn} inch stock is thick`;
+    const because =
+      dense && thick
+        ? `${entry.key} is dense and ${thicknessIn} inch stock is thick`
+        : dense
+          ? `${entry.key} is dense at ${entry.densityLbPerFt3} pounds`
+          : `${thicknessIn} inch stock is thick`;
     return { schedule: schedule('T2-C1'), because };
   }
 
