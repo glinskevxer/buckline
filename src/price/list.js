@@ -29,8 +29,23 @@ export class PriceError extends BucklineError {
   }
 }
 
-/** Grade multipliers used when only a species base price is known. */
+/**
+ * Grade multipliers used when only a species base price is known.
+ *
+ * Logs and lumber are both in here and they are not on the same scale. A
+ * species base price is quoted for whichever side of the mill the list is for,
+ * and the multiplier is read against that base. A log list and a lumber list
+ * are different lists with different base prices, which is why nothing here
+ * tries to convert between them.
+ */
 export const GRADE_MULTIPLIER = {
+  F1: 1,
+  F2: 0.62,
+  F3: 0.35,
+  'grade 5 tie': 0.42,
+  'switch tie': 0.46,
+  'grade 4 tie': 0.36,
+  'grade 3 tie': 0.3,
   FAS: 1,
   F1F: 0.9,
   SEL: 0.78,
