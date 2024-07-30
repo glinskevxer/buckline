@@ -6,10 +6,16 @@
  * cuts is one log and there is no overlap, so this is a walk up the stem
  * rather than a search over every combination.
  *
- * It is written as a recursion with a memo, one entry per cut position, and it
- * is the recursion that makes the logic obvious: the best value from a
- * position is the best of taking no more logs, or taking one log to some
- * higher position and then doing the same again from there.
+ * It is filled in from the top of the stem downward. The best value from a
+ * position with k logs left is the best of taking no more logs, or taking one
+ * log to some higher position and then using the answer already worked out for
+ * that position with k minus one logs left. Because the table is filled from
+ * the top down, the answer it needs is always already there.
+ *
+ * This started as a recursion with a memo, which reads better and blows the
+ * stack on a long stem with a fine position grid. A hundred foot stem offered
+ * every nominal length off every defect edge runs to several hundred
+ * positions, and the recursion nests once per log down the stem.
  *
  * The wood below the first cut and above the last is waste. It is reported,
  * because a bucking pattern that leaves nine feet of good butt log on the
@@ -36,37 +42,53 @@ export function buckStem(stem, positions, ruleId, priceList, options = {}) {
   }
 
   const grid = valuedCandidates(stem, positions, ruleId, priceList, options);
-  const memo = new Map();
+  const n = positions.length;
+  const cap = Math.min(maxLogs, n - 1);
 
-  function best(from, remaining) {
-    const key = `${from}|${remaining}`;
-    const seen = memo.get(key);
-    if (seen) return seen;
+  // table[k][i] is the best value reachable from position i with k logs left.
+  // Row zero is all zeros and every later row only reads the row below it, so
+  // filling the rows in order is enough.
+  const table = [];
+  for (let k = 0; k <= cap; k += 1) {
+    table.push(new Array(n).fill(null).map(() => ({ value: 0, next: null, taken: null })));
+  }
 
-    let answer = { value: 0, chosen: [] };
-    if (remaining > 0) {
-      for (let to = from + 1; to < positions.length; to += 1) {
+  let states = 0;
+  for (let k = 1; k <= cap; k += 1) {
+    for (let from = n - 2; from >= 0; from -= 1) {
+      let bestValue = 0;
+      let bestNext = null;
+      let bestTaken = null;
+      for (let to = from + 1; to < n; to += 1) {
         const candidate = grid[from][to];
         if (!candidate) continue;
-        const rest = best(to, remaining - 1);
-        const value = round2(candidate.value + rest.value);
-        if (value > answer.value + 1e-9) {
-          answer = { value, chosen: [candidate, ...rest.chosen] };
+        const value = round2(candidate.value + table[k - 1][to].value);
+        if (value > bestValue + 1e-9) {
+          bestValue = value;
+          bestNext = to;
+          bestTaken = candidate;
         }
       }
+      table[k][from] = { value: bestValue, next: bestNext, taken: bestTaken };
+      states += 1;
     }
-    memo.set(key, answer);
-    return answer;
   }
 
-  let winner = { value: 0, chosen: [] };
-  const cap = Math.min(maxLogs, positions.length - 1);
-  for (let start = 0; start < positions.length - 1; start += 1) {
-    const found = best(start, cap);
-    if (found.value > winner.value + 1e-9) winner = found;
+  let start = 0;
+  for (let i = 1; i < n - 1; i += 1) {
+    if (table[cap][i].value > table[cap][start].value + 1e-9) start = i;
   }
 
-  return summarise(stem, positions, winner.chosen, memo.size);
+  const chosen = [];
+  let at = start;
+  let left = cap;
+  while (left > 0 && table[left][at].taken) {
+    chosen.push(table[left][at].taken);
+    at = table[left][at].next;
+    left -= 1;
+  }
+
+  return summarise(stem, positions, chosen, states);
 }
 
 function summarise(stem, positions, chosen, statesVisited) {
