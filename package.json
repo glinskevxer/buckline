@@ -22,5 +22,15 @@
     "globals": "15.9.0",
     "prettier": "3.3.3",
     "vitest": "2.0.5"
-  }
+  },
+  "bin": {
+    "buckline": "bin/buckline.js"
+  },
+  "dependencies": {
+    "commander": "12.1.0"
+  },
+  "files": [
+    "bin",
+    "src"
+  ]
 }
