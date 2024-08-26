@@ -17,6 +17,7 @@
 import { Command } from 'commander';
 import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
+import { registerGrade } from './commands/grade.js';
 import { registerScale } from './commands/scale.js';
 
 export const VERSION = '0.5.0';
@@ -39,6 +40,7 @@ export function buildProgram(context) {
     .exitOverride();
 
   registerScale(program, context);
+  registerGrade(program, context);
   return program;
 }
 
