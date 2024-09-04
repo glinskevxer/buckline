@@ -20,6 +20,7 @@ import { EXIT, exitCodeFor, makeContext } from './io.js';
 import { registerBuck } from './commands/buck.js';
 import { registerGrade } from './commands/grade.js';
 import { registerScale } from './commands/scale.js';
+import { registerSettle } from './commands/settle.js';
 
 export const VERSION = '0.5.0';
 
@@ -43,6 +44,7 @@ export function buildProgram(context) {
   registerScale(program, context);
   registerGrade(program, context);
   registerBuck(program, context);
+  registerSettle(program, context);
   return program;
 }
 
