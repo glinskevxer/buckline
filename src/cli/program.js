@@ -17,6 +17,7 @@
 import { Command } from 'commander';
 import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
+import { registerBuck } from './commands/buck.js';
 import { registerGrade } from './commands/grade.js';
 import { registerScale } from './commands/scale.js';
 
@@ -41,6 +42,7 @@ export function buildProgram(context) {
 
   registerScale(program, context);
   registerGrade(program, context);
+  registerBuck(program, context);
   return program;
 }
 
