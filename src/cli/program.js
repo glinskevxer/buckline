@@ -22,6 +22,7 @@ import { registerGrade } from './commands/grade.js';
 import { registerRules } from './commands/rules.js';
 import { registerScale } from './commands/scale.js';
 import { registerSettle } from './commands/settle.js';
+import { registerYard } from './commands/yard.js';
 
 export const VERSION = '0.5.0';
 
@@ -47,6 +48,7 @@ export function buildProgram(context) {
   registerBuck(program, context);
   registerSettle(program, context);
   registerRules(program, context);
+  registerYard(program, context);
   return program;
 }
 
