@@ -1,6 +1,6 @@
 {
   "name": "buckline",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "private": true,
   "description": "Log scaling, grading and yield accounting for a hardwood sawmill",
   "type": "module",
@@ -13,7 +13,9 @@
     "coverage": "vitest run --coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "smoke": "bash scripts/smoke.sh",
+    "check": "npm run lint && npm run format:check && npm test"
   },
   "devDependencies": {
     "@eslint/js": "9.9.0",

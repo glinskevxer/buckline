@@ -7,7 +7,13 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.js'],
-      reporter: ['text-summary'],
+      reporter: ['text-summary', 'lcov'],
+      thresholds: {
+        statements: 97,
+        branches: 90,
+        functions: 96,
+        lines: 97,
+      },
     },
   },
 });
