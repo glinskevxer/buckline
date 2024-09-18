@@ -10,13 +10,13 @@
 import { makeAgreement } from '../../settle/stumpage.js';
 import { makeSplit } from '../../settle/split.js';
 import { makeRateCard } from '../../settle/haul.js';
-import { auditStatement, settle, statementSummary } from '../../settle/statement.js';
+import { auditStatement, settle } from '../../settle/statement.js';
+import { settlementDocument } from '../../report/documents.js';
 import { SettleError } from '../../settle/stumpage.js';
-import { block, heading, money, table } from '../render/table.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
 import { emit, readData } from '../io.js';
-import { requireFormat } from '../program.js';
+import { VERSION, requireFormat } from '../program.js';
 
 /** Runs the settle command and returns the statement text. */
 export function runSettle(options, context) {
@@ -55,7 +55,7 @@ export function runSettle(options, context) {
 
   if (format === 'json') return json(statement);
   if (format === 'csv') return csv(statement.lines);
-  return textStatement(statement);
+  return settlementDocument(statement, { producedBy: `buckline ${VERSION}` });
 }
 
 function normaliseLine(line) {
@@ -65,52 +65,6 @@ function normaliseLine(line) {
     netBoardFeet:
       typeof line.netBoardFeet === 'string' ? Number(line.netBoardFeet) : line.netBoardFeet,
   };
-}
-
-function textStatement(statement) {
-  const parts = [
-    heading(`Settlement ${statement.statementId}`),
-    block({
-      load: statement.loadId,
-      'scaled on': statement.scaledOn,
-      agreement: statement.agreement,
-      'market index': statement.marketIndex ?? 'not read',
-    }),
-    '',
-    table(
-      statement.lines,
-      [
-        { key: 'species', header: 'species' },
-        { key: 'grade', header: 'grade' },
-        { key: 'netBoardFeet', header: 'net bf' },
-        { key: 'basePerMbf', header: 'base' },
-        { key: 'perMbf', header: 'rate' },
-        { key: 'value', header: 'value', format: (value) => money(value) },
-      ],
-      {
-        totals: { species: 'total', netBoardFeet: statement.netMbf * 1000, value: statement.gross },
-      }
-    ),
-    '',
-    heading('Deductions', { rule: '-' }),
-    table(statement.deductions.lines, [
-      { key: 'name', header: 'deduction' },
-      { key: 'class', header: 'class' },
-      { key: 'basis', header: 'basis' },
-      { key: 'amount', header: 'amount', format: (value) => money(value) },
-      { key: 'reason', header: 'note' },
-    ]),
-    '',
-    table(statementSummary(statement), [
-      { key: 'label', header: '' },
-      { key: 'amount', header: 'amount', format: (value) => money(value) },
-    ]),
-  ];
-
-  if (statement.underwater.underwater) {
-    parts.push('', `WARNING: ${statement.underwater.parties.join(' and ')} owe money on this load`);
-  }
-  return parts.join('\n');
 }
 
 /** Registers the command on a program. */

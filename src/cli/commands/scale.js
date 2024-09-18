@@ -8,12 +8,12 @@
 
 import { makeTract, measurementOptions, scalingOptions } from '../../model/tract.js';
 import { makeLoad } from '../../model/load.js';
-import { cullReport, deductionShare, scaleTicket } from '../../scale/ticket.js';
-import { block, heading, table } from '../render/table.js';
+import { scaleTicket } from '../../scale/ticket.js';
+import { scaleTicketDocument } from '../../report/documents.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
 import { emit, readData } from '../io.js';
-import { requireFormat } from '../program.js';
+import { VERSION, requireFormat } from '../program.js';
 
 /** Runs the scale command and returns the report text. */
 export function runScale(options, context) {
@@ -43,58 +43,7 @@ export function runScale(options, context) {
       { key: 'cullReason', header: 'reason' },
     ]);
   }
-  return textTicket(ticket);
-}
-
-function textTicket(ticket) {
-  const parts = [
-    heading(`Scale ticket ${ticket.ticketId}`),
-    block({
-      load: ticket.loadId ?? '',
-      tract: ticket.tractId ?? '',
-      rule: ticket.ruleLabel,
-      scaler: ticket.scaledBy ?? '',
-      logs: ticket.logCount,
-      culled: ticket.culledCount,
-    }),
-    '',
-    table(
-      ticket.lines,
-      [
-        { key: 'logId', header: 'log' },
-        { key: 'grossBoardFeet', header: 'gross' },
-        { key: 'netBoardFeet', header: 'net' },
-        { key: 'cullReason', header: 'note' },
-      ],
-      {
-        totals: {
-          logId: 'total',
-          grossBoardFeet: ticket.grossBoardFeet,
-          netBoardFeet: ticket.netBoardFeet,
-        },
-      }
-    ),
-    '',
-    block({
-      gross: ticket.grossBoardFeet,
-      deduction: ticket.deductionBoardFeet,
-      net: ticket.netBoardFeet,
-      'deduction share': `${Math.round(deductionShare(ticket) * 1000) / 10} percent`,
-    }),
-  ];
-
-  const culls = cullReport(ticket);
-  if (culls.length > 0) {
-    parts.push('', heading('Culled', { rule: '-' }));
-    parts.push(
-      table(culls, [
-        { key: 'logId', header: 'log' },
-        { key: 'grossBoardFeet', header: 'gross' },
-        { key: 'reason', header: 'reason' },
-      ])
-    );
-  }
-  return parts.join('\n');
+  return scaleTicketDocument(ticket, { producedBy: `buckline ${VERSION}` });
 }
 
 /** Registers the command on a program. */
