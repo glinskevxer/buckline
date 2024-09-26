@@ -19,6 +19,7 @@ import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
 import { registerBuck } from './commands/buck.js';
 import { registerGrade } from './commands/grade.js';
+import { registerReport } from './commands/report.js';
 import { registerRules } from './commands/rules.js';
 import { registerScale } from './commands/scale.js';
 import { registerSettle } from './commands/settle.js';
@@ -49,6 +50,7 @@ export function buildProgram(context) {
   registerSettle(program, context);
   registerRules(program, context);
   registerYard(program, context);
+  registerReport(program, context);
   return program;
 }
 
