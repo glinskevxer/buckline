@@ -11,8 +11,11 @@
  * ticket and no reader should ever see one.
  */
 
+import { dirname, join } from 'node:path';
 import { BucklineError } from '../errors.js';
 import { openJournal } from './journal.js';
+import { withLock } from './lock.js';
+import { hydrate, writeSnapshot } from './snapshot.js';
 import { keyedProjection, Projection } from './projection.js';
 import { makeTract, measurementOptions, scalingOptions } from '../model/tract.js';
 import { makeLoad } from '../model/load.js';
@@ -27,6 +30,12 @@ export class RepoError extends BucklineError {
 
 export class Yard {
   constructor(path, options = {}) {
+    this.path = path;
+    this.snapshotDir = options.snapshotDir ?? join(dirname(path), '.buckline');
+    this.lockPath = options.lockPath ?? `${path}.lock`;
+    this.owner = options.owner ?? `pid ${process.pid}`;
+    this.useSnapshots = options.snapshots !== false;
+    this.hydration = [];
     this.journal = openJournal(path, options);
     this.tracts = keyedProjection('tracts', ['tract.saved']);
     this.loads = keyedProjection('loads', ['load.received'], { keyOf: (entry) => entry.loadId });
@@ -56,18 +65,56 @@ export class Yard {
     return this.totals;
   }
 
-  /** Brings every projection up to the end of the journal. */
+  /**
+   * Brings every projection up to the end of the journal, through a snapshot
+   * where there is a usable one. The first refresh of a process is the one
+   * that pays for the whole journal, so it is the one that reads a snapshot.
+   */
   refresh() {
     for (const projection of this.projections) {
-      projection.refresh(this.journal);
+      if (this.useSnapshots && projection.lastSeq === 0) {
+        this.hydration.push({
+          projection: projection.name,
+          ...hydrate(projection, this.journal, this.snapshotPathFor(projection)),
+        });
+      } else {
+        projection.refresh(this.journal);
+      }
     }
     return this;
+  }
+
+  snapshotPathFor(projection) {
+    return join(this.snapshotDir, `${projection.name.replace(/\s+/g, '-')}.json`);
+  }
+
+  /** Writes a snapshot of every projection at the current sequence. */
+  snapshot() {
+    const written = [];
+    for (const projection of this.projections) {
+      written.push(writeSnapshot(this.snapshotPathFor(projection), projection));
+    }
+    return written;
+  }
+
+  /** Runs a write with the book locked, so two terminals cannot interleave. */
+  write(work) {
+    return withLock(
+      this.lockPath,
+      () => {
+        this.journal.load();
+        return work();
+      },
+      { owner: this.owner }
+    );
   }
 
   /** Writes a tract and its contract. */
   saveTract(raw, options = {}) {
     const tract = makeTract(raw);
-    this.journal.append([{ kind: 'tract.saved', id: tract.id, record: tract }], options);
+    this.write(() => {
+      this.journal.append([{ kind: 'tract.saved', id: tract.id, record: tract }], options);
+    });
     this.refresh();
     return tract;
   }
@@ -91,7 +138,9 @@ export class Yard {
     if (this.loads.state.has(load.id)) {
       throw new RepoError(`load ${load.id} has already been received`, { path: 'loadId' });
     }
-    this.journal.append([{ kind: 'load.received', loadId: load.id, record: load }], options);
+    this.write(() => {
+      this.journal.append([{ kind: 'load.received', loadId: load.id, record: load }], options);
+    });
     this.refresh();
     return load;
   }
@@ -127,7 +176,9 @@ export class Yard {
       scalingOptions(tract)
     );
 
-    this.journal.append([{ kind: 'load.scaled', loadId, ticket }], options);
+    this.write(() => {
+      this.journal.append([{ kind: 'load.scaled', loadId, ticket }], options);
+    });
     this.refresh();
     return ticket;
   }
@@ -152,6 +203,7 @@ export class Yard {
     return {
       entries: this.journal.length,
       sequence: this.journal.sequence,
+      hydration: this.hydration,
       projections: this.projections.map((projection) => projection.status()),
     };
   }

@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { LockError, acquire, release } from '../../src/store/lock.js';
 import { RepoError, Yard, openYard } from '../../src/store/repo.js';
 
 const tract = {
@@ -174,5 +175,61 @@ describe('totals and status', () => {
     for (const projection of status.projections) {
       expect(projection.lastSeq).toBe(3);
     }
+  });
+});
+
+describe('locking and snapshots', () => {
+  it('takes the lock for a write and gives it back', () => {
+    yard.saveTract(tract);
+    expect(existsSync(`${path}.lock`)).toBe(false);
+  });
+
+  it('refuses a write while another process holds the lock', () => {
+    acquire(`${path}.lock`, { owner: 'somebody else' });
+    expect(() => yard.saveTract(tract)).toThrow(LockError);
+    release(`${path}.lock`, 'somebody else');
+  });
+
+  it('picks up a write another process made while this one was idle', () => {
+    yard.saveTract(tract);
+    const other = openYard(path);
+    other.saveTract({ ...tract, id: 'T-9' });
+    yard.saveTract({ ...tract, id: 'T-8' });
+    expect(yard.listTracts().map((t) => t.id)).toEqual(['T-7', 'T-8', 'T-9']);
+  });
+
+  it('writes a snapshot per projection', () => {
+    yard.saveTract(tract);
+    const written = yard.snapshot();
+    expect(written.length).toBe(yard.projections.length);
+    for (const file of written) expect(existsSync(file)).toBe(true);
+  });
+
+  it('reads a snapshot back on the next open', () => {
+    yard.saveTract(tract);
+    yard.receiveLoad(load);
+    yard.snapshot();
+
+    const reopened = openYard(path);
+    expect(reopened.getTract('T-7').name).toBe('Culpeper 40');
+    expect(reopened.status().hydration.every((row) => row.from === 'snapshot')).toBe(true);
+  });
+
+  it('reaches the same answer with the snapshot deleted', () => {
+    yard.saveTract(tract);
+    yard.receiveLoad(load);
+    yard.snapshot();
+    const withSnapshot = openYard(path).listTracts();
+
+    rmSync(join(dirname(path), '.buckline'), { recursive: true, force: true });
+    expect(openYard(path).listTracts()).toEqual(withSnapshot);
+  });
+
+  it('can be told not to use snapshots at all', () => {
+    yard.saveTract(tract);
+    yard.snapshot();
+    const plain = openYard(path, { snapshots: false });
+    expect(plain.status().hydration).toEqual([]);
+    expect(plain.getTract('T-7').name).toBe('Culpeper 40');
   });
 });
