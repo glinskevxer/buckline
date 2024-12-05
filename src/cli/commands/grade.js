@@ -16,7 +16,8 @@ import { byGrade } from '../../tally/summary.js';
 import { block, heading, table } from '../render/table.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
-import { emit, readData } from '../io.js';
+import { readData } from '../io.js';
+import { optional, reportCommand, required } from '../command-kit.js';
 import { requireFormat } from '../program.js';
 
 /** Works out whether a file holds logs or boards. */
@@ -86,14 +87,13 @@ export function runGrade(options, context) {
 
 /** Registers the command on a program. */
 export function registerGrade(program, context) {
-  program
-    .command('grade')
-    .description('grade a deck of logs or a tally of boards')
-    .requiredOption('-i, --input <file>', 'the logs or boards file')
-    .option('--markets <list>', 'open log markets, comma separated')
-    .option('-f, --format <format>', 'text, csv or json', 'text')
-    .option('-o, --output <file>', 'write to a file instead of the screen')
-    .action((options) => {
-      emit(context, runGrade(options, context), options);
-    });
+  reportCommand(program, context, {
+    name: 'grade',
+    description: 'grade a deck of logs or a tally of boards',
+    options: [
+      required('-i, --input <file>', 'the logs or boards file'),
+      optional('--markets <list>', 'open log markets, comma separated'),
+    ],
+    run: runGrade,
+  });
 }

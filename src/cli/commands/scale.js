@@ -12,7 +12,8 @@ import { scaleTicket } from '../../scale/ticket.js';
 import { scaleTicketDocument } from '../../report/documents.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
-import { emit, readData } from '../io.js';
+import { readData } from '../io.js';
+import { optional, reportCommand, required } from '../command-kit.js';
 import { VERSION, requireFormat } from '../program.js';
 
 /** Runs the scale command and returns the report text. */
@@ -48,15 +49,14 @@ export function runScale(options, context) {
 
 /** Registers the command on a program. */
 export function registerScale(program, context) {
-  program
-    .command('scale')
-    .description('scale a load against its tract contract')
-    .requiredOption('-l, --load <file>', 'the load file')
-    .requiredOption('-t, --tract <file>', 'the tract and contract file')
-    .option('--ticket <id>', 'ticket number to put on the report')
-    .option('-f, --format <format>', 'text, csv or json', 'text')
-    .option('-o, --output <file>', 'write to a file instead of the screen')
-    .action((options) => {
-      emit(context, runScale(options, context), options);
-    });
+  reportCommand(program, context, {
+    name: 'scale',
+    description: 'scale a load against its tract contract',
+    options: [
+      required('-l, --load <file>', 'the load file'),
+      required('-t, --tract <file>', 'the tract and contract file'),
+      optional('--ticket <id>', 'ticket number to put on the report'),
+    ],
+    run: runScale,
+  });
 }

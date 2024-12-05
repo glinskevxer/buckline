@@ -15,7 +15,8 @@ import { settlementDocument } from '../../report/documents.js';
 import { SettleError } from '../../settle/stumpage.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
-import { emit, readData } from '../io.js';
+import { readData } from '../io.js';
+import { optional, reportCommand, required } from '../command-kit.js';
 import { VERSION, requireFormat } from '../program.js';
 
 /** Runs the settle command and returns the statement text. */
@@ -69,20 +70,19 @@ function normaliseLine(line) {
 
 /** Registers the command on a program. */
 export function registerSettle(program, context) {
-  program
-    .command('settle')
-    .description('turn a graded load into a settlement statement')
-    .requiredOption('-g, --graded <file>', 'the graded and scaled lines')
-    .requiredOption('-t, --terms <file>', 'the agreement, split and deduction schedule')
-    .option('--load <id>', 'load number')
-    .option('--statement <id>', 'statement number')
-    .option('--scaled-on <date>', 'the date the load was scaled')
-    .option('--index <value>', 'the market index published on the scale date')
-    .option('--diesel <value>', 'diesel price for the fuel surcharge')
-    .option('--zone <zone>', 'haul zone')
-    .option('-f, --format <format>', 'text, csv or json', 'text')
-    .option('-o, --output <file>', 'write to a file instead of the screen')
-    .action((options) => {
-      emit(context, runSettle(options, context), options);
-    });
+  reportCommand(program, context, {
+    name: 'settle',
+    description: 'turn a graded load into a settlement statement',
+    options: [
+      required('-g, --graded <file>', 'the graded and scaled lines'),
+      required('-t, --terms <file>', 'the agreement, split and deduction schedule'),
+      optional('--load <id>', 'load number'),
+      optional('--statement <id>', 'statement number'),
+      optional('--scaled-on <date>', 'the date the load was scaled'),
+      optional('--index <value>', 'the market index published on the scale date'),
+      optional('--diesel <value>', 'diesel price for the fuel surcharge'),
+      optional('--zone <zone>', 'haul zone'),
+    ],
+    run: runSettle,
+  });
 }

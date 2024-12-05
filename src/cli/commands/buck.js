@@ -16,7 +16,8 @@ import { cuttingCard, expectedTally, valueLoss } from '../../buck/report.js';
 import { block, heading, money, table } from '../render/table.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
-import { emit, readData } from '../io.js';
+import { readData } from '../io.js';
+import { optional, reportCommand, required } from '../command-kit.js';
 import { requireFormat } from '../program.js';
 
 /** Runs the buck command and returns the report text. */
@@ -80,18 +81,17 @@ export function runBuck(options, context) {
 
 /** Registers the command on a program. */
 export function registerBuck(program, context) {
-  program
-    .command('buck')
-    .description('work out where to cut a stem and print the cutting card')
-    .requiredOption('-s, --stem <file>', 'the stem profile file')
-    .requiredOption('-p, --prices <file>', 'the price list file')
-    .requiredOption('-r, --rule <rule>', 'doyle, international or scribner')
-    .option('--top <inches>', 'merchantable top diameter', '10')
-    .option('--max-logs <count>', 'most logs to take off the stem')
-    .option('--trim <policy>', 'hardwood, softwood or tight', 'hardwood')
-    .option('-f, --format <format>', 'text, csv or json', 'text')
-    .option('-o, --output <file>', 'write to a file instead of the screen')
-    .action((options) => {
-      emit(context, runBuck(options, context), options);
-    });
+  reportCommand(program, context, {
+    name: 'buck',
+    description: 'work out where to cut a stem and print the cutting card',
+    options: [
+      required('-s, --stem <file>', 'the stem profile file'),
+      required('-p, --prices <file>', 'the price list file'),
+      required('-r, --rule <rule>', 'doyle, international or scribner'),
+      optional('--top <inches>', 'merchantable top diameter', '10'),
+      optional('--max-logs <count>', 'most logs to take off the stem'),
+      optional('--trim <policy>', 'hardwood, softwood or tight', 'hardwood'),
+    ],
+    run: runBuck,
+  });
 }

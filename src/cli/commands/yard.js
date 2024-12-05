@@ -13,7 +13,8 @@
 import { openYard } from '../../store/repo.js';
 import { block, heading, money, table } from '../render/table.js';
 import { json } from '../render/json.js';
-import { IoError, emit, readData, resolvePath } from '../io.js';
+import { IoError, readData, resolvePath } from '../io.js';
+import { actionCommand, optional, required } from '../command-kit.js';
 import { requireFormat } from '../program.js';
 
 function open(options, context) {
@@ -92,43 +93,45 @@ export function runYardStatus(options, context) {
 export function registerYard(program, context) {
   const yard = program.command('yard').description('the commands that write to the yard book');
 
-  yard
-    .command('tract')
-    .description('save a tract and its contract')
-    .requiredOption('-y, --yard <file>', 'the yard book')
-    .requiredOption('-i, --file <file>', 'the tract file')
-    .option('--actor <name>', 'who is doing this')
-    .action((options) => {
-      emit(context, runYardTract(options, context), options);
-    });
+  actionCommand(yard, context, {
+    name: 'tract',
+    description: 'save a tract and its contract',
+    options: [
+      required('-y, --yard <file>', 'the yard book'),
+      required('-i, --file <file>', 'the tract file'),
+      optional('--actor <name>', 'who is doing this'),
+    ],
+    run: runYardTract,
+  });
 
-  yard
-    .command('receive')
-    .description('record a load arriving')
-    .requiredOption('-y, --yard <file>', 'the yard book')
-    .requiredOption('-i, --file <file>', 'the load file')
-    .option('--actor <name>', 'who is doing this')
-    .action((options) => {
-      emit(context, runYardReceive(options, context), options);
-    });
+  actionCommand(yard, context, {
+    name: 'receive',
+    description: 'record a load arriving',
+    options: [
+      required('-y, --yard <file>', 'the yard book'),
+      required('-i, --file <file>', 'the load file'),
+      optional('--actor <name>', 'who is doing this'),
+    ],
+    run: runYardReceive,
+  });
 
-  yard
-    .command('scale')
-    .description('scale a load that is already in the book')
-    .requiredOption('-y, --yard <file>', 'the yard book')
-    .requiredOption('-l, --load <id>', 'the load number')
-    .option('--actor <name>', 'who is doing this')
-    .option('-f, --format <format>', 'text or json', 'text')
-    .action((options) => {
-      emit(context, runYardScale(options, context), options);
-    });
+  actionCommand(yard, context, {
+    name: 'scale',
+    description: 'scale a load that is already in the book',
+    formats: true,
+    options: [
+      required('-y, --yard <file>', 'the yard book'),
+      required('-l, --load <id>', 'the load number'),
+      optional('--actor <name>', 'who is doing this'),
+    ],
+    run: runYardScale,
+  });
 
-  yard
-    .command('status')
-    .description('what the book holds')
-    .requiredOption('-y, --yard <file>', 'the yard book')
-    .option('-f, --format <format>', 'text or json', 'text')
-    .action((options) => {
-      emit(context, runYardStatus(options, context), options);
-    });
+  actionCommand(yard, context, {
+    name: 'status',
+    description: 'what the book holds',
+    formats: true,
+    options: [required('-y, --yard <file>', 'the yard book')],
+    run: runYardStatus,
+  });
 }

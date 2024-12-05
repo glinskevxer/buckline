@@ -17,7 +17,7 @@ import {
 import { block, heading, table } from '../render/table.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
-import { emit } from '../io.js';
+import { optional, reportCommand } from '../command-kit.js';
 import { requireFormat } from '../program.js';
 
 /** Rows for a printed scale stick under one rule. */
@@ -98,16 +98,15 @@ export function runRules(options) {
 
 /** Registers the command on a program. */
 export function registerRules(program, context) {
-  program
-    .command('rules')
-    .description('print a scale stick or compare the log rules')
-    .option('-r, --rule <rule>', 'print one rule instead of comparing them all')
-    .option('-l, --length <feet>', 'log length', '16')
-    .option('--from <inches>', 'smallest diameter', '6')
-    .option('--to <inches>', 'largest diameter', '40')
-    .option('-f, --format <format>', 'text, csv or json', 'text')
-    .option('-o, --output <file>', 'write to a file instead of the screen')
-    .action((options) => {
-      emit(context, runRules(options), options);
-    });
+  reportCommand(program, context, {
+    name: 'rules',
+    description: 'print a scale stick or compare the log rules',
+    options: [
+      optional('-r, --rule <rule>', 'print one rule instead of comparing them all'),
+      optional('-l, --length <feet>', 'log length', '16'),
+      optional('--from <inches>', 'smallest diameter', '6'),
+      optional('--to <inches>', 'largest diameter', '40'),
+    ],
+    run: (options) => runRules(options),
+  });
 }

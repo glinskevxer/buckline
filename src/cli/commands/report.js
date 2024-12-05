@@ -15,7 +15,8 @@ import { footer } from '../../report/documents.js';
 import { block, heading, money, table } from '../render/table.js';
 import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
-import { emit, readData } from '../io.js';
+import { readData } from '../io.js';
+import { optional, reportCommand, required } from '../command-kit.js';
 import { VERSION, requireFormat } from '../program.js';
 
 function readLogs(context, path) {
@@ -115,29 +116,27 @@ export function registerReport(program, context) {
     .command('report')
     .description('the reports that read several things at once');
 
-  report
-    .command('reconcile')
-    .description('split the gap between a contract scale and a mill tally')
-    .requiredOption('-i, --logs <file>', 'the logs on the load')
-    .requiredOption('-r, --rule <rule>', 'the contract rule')
-    .requiredOption('--scaled <boardFeet>', 'what the load was bought on')
-    .requiredOption('--tallied <boardFeet>', 'what the green chain counted')
-    .option('--check <boardFeet>', 'an independent rescale under the same rule')
-    .option('-f, --format <format>', 'text, csv or json', 'text')
-    .option('-o, --output <file>', 'write to a file instead of the screen')
-    .action((options) => {
-      emit(context, runReconcile(options, context), options);
-    });
+  reportCommand(report, context, {
+    name: 'reconcile',
+    description: 'split the gap between a contract scale and a mill tally',
+    options: [
+      required('-i, --logs <file>', 'the logs on the load'),
+      required('-r, --rule <rule>', 'the contract rule'),
+      required('--scaled <boardFeet>', 'what the load was bought on'),
+      required('--tallied <boardFeet>', 'what the green chain counted'),
+      optional('--check <boardFeet>', 'an independent rescale under the same rule'),
+    ],
+    run: runReconcile,
+  });
 
-  report
-    .command('study')
-    .description('saw a deck on paper under every pattern and price the result')
-    .requiredOption('-i, --logs <file>', 'the logs on the deck')
-    .requiredOption('-p, --prices <file>', 'the price list')
-    .requiredOption('-r, --rule <rule>', 'the rule the wood was bought on')
-    .option('-f, --format <format>', 'text, csv or json', 'text')
-    .option('-o, --output <file>', 'write to a file instead of the screen')
-    .action((options) => {
-      emit(context, runStudy(options, context), options);
-    });
+  reportCommand(report, context, {
+    name: 'study',
+    description: 'saw a deck on paper under every pattern and price the result',
+    options: [
+      required('-i, --logs <file>', 'the logs on the deck'),
+      required('-p, --prices <file>', 'the price list'),
+      required('-r, --rule <rule>', 'the rule the wood was bought on'),
+    ],
+    run: runStudy,
+  });
 }
