@@ -18,6 +18,7 @@ import { Command } from 'commander';
 import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
 import { registerBuck } from './commands/buck.js';
+import { registerDeck } from './commands/deck.js';
 import { registerGrade } from './commands/grade.js';
 import { registerKiln } from './commands/kiln.js';
 import { registerReport } from './commands/report.js';
@@ -53,6 +54,7 @@ export function buildProgram(context) {
   registerYard(program, context);
   registerReport(program, context);
   registerKiln(program, context);
+  registerDeck(program, context);
   return program;
 }
 
