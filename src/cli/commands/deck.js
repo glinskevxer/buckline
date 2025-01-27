@@ -10,11 +10,9 @@
 import { daysOfInventory, deckSummary, deckVolume, oldest, onDeck } from '../../inventory/deck.js';
 import { holdingCost, seasonOf } from '../../inventory/degrade.js';
 import { block, heading, money, table } from '../render/table.js';
-import { csv } from '../render/csv.js';
-import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
-import { requireFormat } from '../program.js';
+import { render, requireFormat } from '../render/index.js';
 
 const KEYS = {
   species: (entry) => entry.species,
@@ -33,32 +31,34 @@ export function runDeckList(options, context) {
   }
 
   const rows = deckSummary(entries, asOf, keyOf);
-  if (format === 'json') return json({ asOf, rows, entries: onDeck(entries, asOf) });
-  if (format === 'csv') return csv(rows);
-
-  const parts = [
-    heading(`Log deck as of ${asOf}`),
-    block({
-      'board feet': deckVolume(entries, asOf),
-      logs: onDeck(entries, asOf).length,
-      'broken out by': options.by ?? 'species',
-    }),
-    '',
-    table(rows, [
-      { key: 'key', header: options.by ?? 'species' },
-      { key: 'logs', header: 'logs' },
-      { key: 'netBoardFeet', header: 'bd ft' },
-      { key: 'averageAgeDays', header: 'avg age' },
-    ]),
-  ];
-
-  if (options.cutRate) {
-    parts.push(
-      '',
-      block({ 'days of inventory': daysOfInventory(entries, asOf, Number(options.cutRate)) })
-    );
-  }
-  return parts.join('\n');
+  return render(format, {
+    json: { asOf, rows, entries: onDeck(entries, asOf) },
+    csv: rows,
+    text: () => {
+      const parts = [
+        heading(`Log deck as of ${asOf}`),
+        block({
+          'board feet': deckVolume(entries, asOf),
+          logs: onDeck(entries, asOf).length,
+          'broken out by': options.by ?? 'species',
+        }),
+        '',
+        table(rows, [
+          { key: 'key', header: options.by ?? 'species' },
+          { key: 'logs', header: 'logs' },
+          { key: 'netBoardFeet', header: 'bd ft' },
+          { key: 'averageAgeDays', header: 'avg age' },
+        ]),
+      ];
+      if (options.cutRate) {
+        parts.push(
+          '',
+          block({ 'days of inventory': daysOfInventory(entries, asOf, Number(options.cutRate)) })
+        );
+      }
+      return parts.join('\n');
+    },
+  });
 }
 
 /** What the wood that has been waiting is costing. */
@@ -89,25 +89,26 @@ export function runDeckAging(options, context) {
     };
   });
 
-  if (format === 'json') return json({ asOf, season, storage, rows });
-  if (format === 'csv') return csv(rows);
-
-  const total = rows.reduce((sum, row) => sum + row.lostValue, 0);
-  return [
-    heading(`Wood that has been waiting, as of ${asOf}`),
-    block({ season, storage, 'priced at': money(perMbf), logs: rows.length }),
-    '',
-    table(rows, [
-      { key: 'logId', header: 'log' },
-      { key: 'species', header: 'species' },
-      { key: 'ageDays', header: 'days' },
-      { key: 'netBoardFeet', header: 'bd ft' },
-      { key: 'lostValue', header: 'lost', format: (value) => money(value) },
-      { key: 'firstToShow', header: 'showing' },
-    ]),
-    '',
-    block({ 'lost so far': money(total) }),
-  ].join('\n');
+  return render(format, {
+    json: { asOf, season, storage, rows },
+    csv: rows,
+    text: () =>
+      [
+        heading(`Wood that has been waiting, as of ${asOf}`),
+        block({ season, storage, 'priced at': money(perMbf), logs: rows.length }),
+        '',
+        table(rows, [
+          { key: 'logId', header: 'log' },
+          { key: 'species', header: 'species' },
+          { key: 'ageDays', header: 'days' },
+          { key: 'netBoardFeet', header: 'bd ft' },
+          { key: 'lostValue', header: 'lost', format: (value) => money(value) },
+          { key: 'firstToShow', header: 'showing' },
+        ]),
+        '',
+        block({ 'lost so far': money(rows.reduce((sum, row) => sum + row.lostValue, 0)) }),
+      ].join('\n'),
+  });
 }
 
 /** Registers the deck commands on a program. */

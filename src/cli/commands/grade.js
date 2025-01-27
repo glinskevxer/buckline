@@ -18,7 +18,7 @@ import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
-import { requireFormat } from '../program.js';
+import { requireFormat } from '../render/index.js';
 
 /** Works out whether a file holds logs or boards. */
 export function kindOf(records) {

@@ -17,7 +17,8 @@ import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
-import { VERSION, requireFormat } from '../program.js';
+import { VERSION } from '../program.js';
+import { requireFormat } from '../render/index.js';
 
 function readLogs(context, path) {
   const records = readData(context, path);

@@ -15,7 +15,7 @@ import { block, heading, money, table } from '../render/table.js';
 import { json } from '../render/json.js';
 import { IoError, readData, resolvePath } from '../io.js';
 import { actionCommand, optional, required } from '../command-kit.js';
-import { requireFormat } from '../program.js';
+import { requireFormat } from '../render/index.js';
 
 function open(options, context) {
   if (!options.yard) {

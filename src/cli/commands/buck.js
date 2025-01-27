@@ -18,7 +18,7 @@ import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
-import { requireFormat } from '../program.js';
+import { requireFormat } from '../render/index.js';
 
 /** Runs the buck command and returns the report text. */
 export function runBuck(options, context) {

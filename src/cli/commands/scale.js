@@ -14,7 +14,8 @@ import { csv } from '../render/csv.js';
 import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
-import { VERSION, requireFormat } from '../program.js';
+import { VERSION } from '../program.js';
+import { requireFormat } from '../render/index.js';
 
 /** Runs the scale command and returns the report text. */
 export function runScale(options, context) {

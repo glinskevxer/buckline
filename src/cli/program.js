@@ -17,6 +17,7 @@
 import { Command } from 'commander';
 import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
+export { FORMATS, requireFormat } from './render/index.js';
 import { registerBuck } from './commands/buck.js';
 import { registerDeck } from './commands/deck.js';
 import { registerGrade } from './commands/grade.js';
@@ -28,9 +29,6 @@ import { registerSettle } from './commands/settle.js';
 import { registerYard } from './commands/yard.js';
 
 export const VERSION = '0.5.0';
-
-/** The output formats every reporting command supports. */
-export const FORMATS = ['text', 'csv', 'json'];
 
 /** Builds the program. Nothing is parsed and nothing is written yet. */
 export function buildProgram(context) {
@@ -83,12 +81,4 @@ export function run(argv, options = {}) {
     context.err(formatError(error));
     return { code: exitCodeFor(error), context };
   }
-}
-
-/** Checks a format name before a command uses it. */
-export function requireFormat(name) {
-  if (!FORMATS.includes(name)) {
-    throw new TypeError(`unknown format ${name}, we write ${FORMATS.join(', ')}`);
-  }
-  return name;
 }

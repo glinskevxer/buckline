@@ -15,10 +15,8 @@ import {
   rulePolicy,
 } from '../../scale/rules/index.js';
 import { block, heading, table } from '../render/table.js';
-import { csv } from '../render/csv.js';
-import { json } from '../render/json.js';
 import { optional, reportCommand } from '../command-kit.js';
-import { requireFormat } from '../program.js';
+import { render, requireFormat } from '../render/index.js';
 
 /** Rows for a printed scale stick under one rule. */
 export function stickRows(ruleId, lengthFt, options = {}) {
@@ -56,44 +54,49 @@ export function runRules(options) {
   if (options.rule) {
     const policy = rulePolicy(options.rule);
     const rows = stickRows(options.rule, lengthFt, { from, to });
-    if (format === 'json') return json({ policy, rows });
-    if (format === 'csv') return csv(rows);
-    return [
-      heading(`${policy.label} scale stick, ${lengthFt} foot logs`),
-      block({
-        rule: policy.id,
-        'deduction method': policy.deductionMethod,
-        'segment length': policy.segmentFt ?? 'whole log',
-        'rounds to': policy.roundsTo,
-        'smallest log': `${policy.smallestDiameterIn} in`,
-      }),
-      '',
-      table(rows, [
-        { key: 'diameterIn', header: 'dia' },
-        { key: 'boardFeet', header: 'bd ft' },
-      ]),
-    ].join('\n');
+    return render(format, {
+      json: { policy, rows },
+      csv: rows,
+      text: () =>
+        [
+          heading(`${policy.label} scale stick, ${lengthFt} foot logs`),
+          block({
+            rule: policy.id,
+            'deduction method': policy.deductionMethod,
+            'segment length': policy.segmentFt ?? 'whole log',
+            'rounds to': policy.roundsTo,
+            'smallest log': `${policy.smallestDiameterIn} in`,
+          }),
+          '',
+          table(rows, [
+            { key: 'diameterIn', header: 'dia' },
+            { key: 'boardFeet', header: 'bd ft' },
+          ]),
+        ].join('\n'),
+    });
   }
 
   const rows = comparisonRows(lengthFt, { from, to });
-  if (format === 'json') return json(rows);
-  if (format === 'csv') return csv(rows);
-
   const crossings = ruleIds().map((ruleId) => ({
     rule: ruleId,
     crossover: crossoverDiameter(ruleId, lengthFt) ?? 'never in range',
   }));
 
-  return [
-    heading(`Every rule at ${lengthFt} feet`),
-    table(rows, [
-      { key: 'diameterIn', header: 'dia' },
-      ...ruleIds().map((ruleId) => ({ key: ruleId, header: ruleId })),
-    ]),
-    '',
-    heading('Where each rule catches International', { rule: '-' }),
-    table(crossings, ['rule', 'crossover']),
-  ].join('\n');
+  return render(format, {
+    json: rows,
+    csv: rows,
+    text: () =>
+      [
+        heading(`Every rule at ${lengthFt} feet`),
+        table(rows, [
+          { key: 'diameterIn', header: 'dia' },
+          ...ruleIds().map((ruleId) => ({ key: ruleId, header: ruleId })),
+        ]),
+        '',
+        heading('Where each rule catches International', { rule: '-' }),
+        table(crossings, ['rule', 'crossover']),
+      ].join('\n'),
+  });
 }
 
 /** Registers the command on a program. */
