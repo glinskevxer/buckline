@@ -22,6 +22,7 @@ import { registerBuck } from './commands/buck.js';
 import { registerDeck } from './commands/deck.js';
 import { registerGrade } from './commands/grade.js';
 import { registerKiln } from './commands/kiln.js';
+import { registerPeriod } from './commands/period.js';
 import { registerReport } from './commands/report.js';
 import { registerRules } from './commands/rules.js';
 import { registerScale } from './commands/scale.js';
@@ -53,6 +54,7 @@ export function buildProgram(context) {
   registerReport(program, context);
   registerKiln(program, context);
   registerDeck(program, context);
+  registerPeriod(program, context);
   return program;
 }
 
