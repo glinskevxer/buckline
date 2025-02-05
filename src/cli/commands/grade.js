@@ -14,11 +14,9 @@ import { gradeLoad } from '../../grade/log/index.js';
 import { gradeTally } from '../../grade/index.js';
 import { byGrade } from '../../tally/summary.js';
 import { block, heading, table } from '../render/table.js';
-import { csv } from '../render/csv.js';
-import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
-import { requireFormat } from '../render/index.js';
+import { render, requireFormat } from '../render/index.js';
 
 /** Works out whether a file holds logs or boards. */
 export function kindOf(records) {
@@ -43,27 +41,29 @@ export function runGrade(options, context) {
   if (kind === 'logs') {
     const logs = records.map((record) => makeLog(record));
     const result = gradeLoad(logs, markets ? { markets } : {});
-    if (format === 'json') return json(result);
     const rows = result.results.map((entry) => ({
       log: entry.logId,
       market: entry.market ?? '',
       grade: entry.grade ?? 'none',
       note: entry.notes[0] ?? '',
     }));
-    if (format === 'csv') return csv(rows);
-    return [
-      heading('Log grades'),
-      table(rows, ['log', 'market', 'grade', 'note']),
-      '',
-      table(result.byGrade, ['grade', 'count']),
-      '',
-      block({ logs: result.results.length, ungraded: result.ungraded }),
-    ].join('\n');
+    return render(format, {
+      json: result,
+      csv: rows,
+      text: () =>
+        [
+          heading('Log grades'),
+          table(rows, ['log', 'market', 'grade', 'note']),
+          '',
+          table(result.byGrade, ['grade', 'count']),
+          '',
+          block({ logs: result.results.length, ungraded: result.ungraded }),
+        ].join('\n'),
+    });
   }
 
   const boards = records.map((record) => makeBoard(record));
   const result = gradeTally(boards, {});
-  if (format === 'json') return json(result);
   const rows = result.results.map((entry, index) => ({
     board: entry.boardId,
     species: entry.species,
@@ -71,18 +71,24 @@ export function runGrade(options, context) {
     grade: entry.grade ?? 'none',
     boardFeet: boards[index].boardFeet,
   }));
-  if (format === 'csv') return csv(rows);
-  return [
-    heading('Lumber grades'),
-    table(rows, ['board', 'species', 'book', 'grade', 'boardFeet']),
-    '',
-    table(
-      byGrade(rows.map((row, index) => ({ grade: row.grade, boardFeet: boards[index].boardFeet }))),
-      ['grade', 'pieces', 'boardFeet', 'footageShare']
-    ),
-    '',
-    block({ boards: result.results.length, ungraded: result.ungraded }),
-  ].join('\n');
+  return render(format, {
+    json: result,
+    csv: rows,
+    text: () =>
+      [
+        heading('Lumber grades'),
+        table(rows, ['board', 'species', 'book', 'grade', 'boardFeet']),
+        '',
+        table(byGrade(rows.map((row) => ({ grade: row.grade, boardFeet: row.boardFeet }))), [
+          'grade',
+          'pieces',
+          'boardFeet',
+          'footageShare',
+        ]),
+        '',
+        block({ boards: result.results.length, ungraded: result.ungraded }),
+      ].join('\n'),
+  });
 }
 
 /** Registers the command on a program. */

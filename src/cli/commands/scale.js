@@ -10,12 +10,10 @@ import { makeTract, measurementOptions, scalingOptions } from '../../model/tract
 import { makeLoad } from '../../model/load.js';
 import { scaleTicket } from '../../scale/ticket.js';
 import { scaleTicketDocument } from '../../report/documents.js';
-import { csv } from '../render/csv.js';
-import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
 import { VERSION } from '../program.js';
-import { requireFormat } from '../render/index.js';
+import { render, requireFormat } from '../render/index.js';
 
 /** Runs the scale command and returns the report text. */
 export function runScale(options, context) {
@@ -35,17 +33,18 @@ export function runScale(options, context) {
     scalingOptions(tract)
   );
 
-  if (format === 'json') return json(ticket);
-  if (format === 'csv') {
-    return csv(ticket.lines, [
+  return render(format, {
+    json: ticket,
+    csv: ticket.lines,
+    csvColumns: [
       { key: 'logId', header: 'log' },
       { key: 'grossBoardFeet', header: 'gross' },
       { key: 'netBoardFeet', header: 'net' },
       { key: 'cull', header: 'cull' },
       { key: 'cullReason', header: 'reason' },
-    ]);
-  }
-  return scaleTicketDocument(ticket, { producedBy: `buckline ${VERSION}` });
+    ],
+    text: () => scaleTicketDocument(ticket, { producedBy: `buckline ${VERSION}` }),
+  });
 }
 
 /** Registers the command on a program. */

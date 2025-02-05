@@ -1,5 +1,5 @@
 # The command line, packaged so a yard office can run it without a toolchain.
-FROM node:20.17.0-bookworm-slim
+FROM node:20.18.2-bookworm-slim
 
 ENV NODE_ENV=production \
     PYTHONDONTWRITEBYTECODE=1
