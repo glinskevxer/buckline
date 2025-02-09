@@ -66,9 +66,13 @@ describe('Projection', () => {
         return state;
       },
     });
+    // Written without the per command sync. This test is about how many times
+    // the fold runs, not about how fast a disk is, and two hundred fsyncs on a
+    // busy machine is slow enough to time the test out and say nothing.
+    const fast = openJournal(join(dir, 'fast.jsonl'), { sync: false });
     for (let i = 0; i < 200; i += 1) {
-      journal.append([{ kind: 'log.scaled' }]);
-      projection.refresh(journal);
+      fast.append([{ kind: 'log.scaled' }]);
+      projection.refresh(fast);
     }
     expect(calls).toBe(200);
   });
