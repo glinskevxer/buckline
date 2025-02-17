@@ -16,18 +16,40 @@ import { byDescending, summarize } from '../collect.js';
 import { round1, round4, sum } from '../num.js';
 
 import { ScaleError } from '../errors.js';
+import { admissible } from '../model/scaler.js';
 import { rulePolicy } from './rules/index.js';
 import { netScale } from './net.js';
 
 /**
  * Scales a whole load and assembles the ticket.
+ *
+ * When the load names a scaler record, the certificate is checked before a
+ * single log is measured. A scale made by somebody who was not allowed to make
+ * it is refused outright rather than produced with a warning on it, because a
+ * ticket with a warning gets paid.
  */
 export function scaleTicket(load, options = {}) {
-  const { rule, logs } = load;
+  const { rule, logs, scaler = null, scaledAt = null } = load;
   if (!Array.isArray(logs) || logs.length === 0) {
     throw new ScaleError('a ticket needs at least one log', { path: 'load.logs' });
   }
   const policy = rulePolicy(rule);
+
+  if (scaler) {
+    const onDate = (scaledAt ?? load.scaledOn ?? '').slice(0, 10);
+    if (!onDate) {
+      throw new ScaleError('a ticket naming a scaler needs the date it was scaled', {
+        path: 'load.scaledAt',
+      });
+    }
+    const check = admissible(scaler, policy.id, onDate);
+    if (!check.admissible) {
+      throw new ScaleError(`this load has not been scaled: ${check.reasons.join('; ')}`, {
+        path: 'load.scaler',
+        details: { reasons: check.reasons, scaler: scaler.id },
+      });
+    }
+  }
 
   const lines = logs.map((log) => netScale(log, rule, options));
 
@@ -38,8 +60,9 @@ export function scaleTicket(load, options = {}) {
     ticketId: load.ticketId ?? null,
     loadId: load.loadId ?? null,
     tractId: load.tractId ?? null,
-    scaledBy: load.scaledBy ?? null,
-    scaledAt: load.scaledAt ?? null,
+    scaledBy: load.scaledBy ?? scaler?.name ?? null,
+    scaledAt: scaledAt ?? load.scaledOn ?? null,
+    scalerId: scaler?.id ?? null,
     rule: policy.id,
     ruleLabel: policy.label,
     lines,

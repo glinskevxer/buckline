@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ScaleError } from '../../src/errors.js';
 import { makeLog } from '../../src/model/log.js';
+import { makeScaler } from '../../src/model/scaler.js';
 import { averageLogSize, cullReport, deductionShare, scaleTicket } from '../../src/scale/ticket.js';
 
 function log(id, species, axis, lengthFt, defects = []) {
@@ -151,5 +152,61 @@ describe('the rule moves the whole ticket', () => {
       (rule) => scaleTicket({ ...load, rule }).culledCount
     );
     expect(Math.max(...counts)).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe('the scaler certificate', () => {
+  const scaler = makeScaler({
+    id: 'SC-1',
+    name: 'D. Rakes',
+    endorsements: ['doyle'],
+    certifiedFrom: '2024-01-01',
+    certifiedTo: '2025-06-30',
+  });
+
+  it('scales a load for a certified scaler', () => {
+    const ticket = scaleTicket({ ...load, scaler, scaledAt: '2025-02-10' });
+    expect(ticket.scalerId).toBe('SC-1');
+    expect(ticket.netBoardFeet).toBeGreaterThan(0);
+  });
+
+  it('takes the scaler name onto the ticket when none was given', () => {
+    const ticket = scaleTicket({ ...load, scaledBy: undefined, scaler, scaledAt: '2025-02-10' });
+    expect(ticket.scaledBy).toBe('D. Rakes');
+  });
+
+  it('refuses a rule the scaler is not endorsed on', () => {
+    expect(() =>
+      scaleTicket({ ...load, rule: 'scribner', scaler, scaledAt: '2025-02-10' })
+    ).toThrow(/not on scribner/);
+  });
+
+  it('refuses a lapsed certificate', () => {
+    expect(() => scaleTicket({ ...load, scaler, scaledAt: '2025-12-01' })).toThrow(/lapsed/);
+  });
+
+  it('says the load has not been scaled rather than that the scale is wrong', () => {
+    expect(() => scaleTicket({ ...load, scaler, scaledAt: '2025-12-01' })).toThrow(
+      /has not been scaled/
+    );
+  });
+
+  it('carries the reasons on the error for the scale house to read', () => {
+    let caught;
+    try {
+      scaleTicket({ ...load, rule: 'scribner', scaler, scaledAt: '2025-12-01' });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught.details.reasons.length).toBe(2);
+    expect(caught.details.scaler).toBe('SC-1');
+  });
+
+  it('refuses a ticket that names a scaler and no date', () => {
+    expect(() => scaleTicket({ ...load, scaler })).toThrow(/needs the date/);
+  });
+
+  it('checks nothing when no scaler is named', () => {
+    expect(scaleTicket(load).scalerId).toBeNull();
   });
 });
