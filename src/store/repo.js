@@ -203,6 +203,7 @@ export class Yard {
     return {
       entries: this.journal.length,
       sequence: this.journal.sequence,
+      versions: this.journal.census(),
       hydration: this.hydration,
       projections: this.projections.map((projection) => projection.status()),
     };

@@ -28,6 +28,7 @@ import {
 } from 'node:fs';
 import { dirname } from 'node:path';
 import { BucklineError } from '../errors.js';
+import { CURRENT_VERSION, migrate, versionCensus } from './migrate.js';
 
 export class JournalError extends BucklineError {
   constructor(message, options = {}) {
@@ -40,6 +41,8 @@ export class Journal {
   constructor(path, options = {}) {
     this.path = path;
     this.sync = options.sync !== false;
+    this.migrate = options.migrate !== false;
+    this.raw = [];
     this.sequence = 0;
     this.entries = [];
     this.load();
@@ -48,6 +51,7 @@ export class Journal {
   /** Reads the file back into memory. A missing file is an empty journal. */
   load() {
     this.entries = [];
+    this.raw = [];
     this.sequence = 0;
     if (!existsSync(this.path)) return;
 
@@ -80,7 +84,8 @@ export class Journal {
         );
       }
       this.sequence = parsed.seq;
-      this.entries.push(parsed);
+      this.raw.push(parsed);
+      this.entries.push(this.migrate ? migrate(parsed) : parsed);
     });
   }
 
@@ -103,6 +108,7 @@ export class Journal {
       seq: this.sequence + index + 1,
       at,
       actor,
+      version: CURRENT_VERSION,
       ...record,
     }));
 
@@ -116,6 +122,7 @@ export class Journal {
     }
 
     this.sequence += written.length;
+    this.raw.push(...written);
     this.entries.push(...written);
     return written;
   }
@@ -137,6 +144,11 @@ export class Journal {
 
   get length() {
     return this.entries.length;
+  }
+
+  /** What the file holds, by the version each entry was written under. */
+  census() {
+    return versionCensus(this.raw);
   }
 }
 

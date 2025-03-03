@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { appendFileSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { CURRENT_VERSION } from '../../src/store/migrate.js';
 import { Journal, JournalError, openJournal } from '../../src/store/journal.js';
 
 let dir;
@@ -142,5 +143,51 @@ describe('reading', () => {
 
   it('is a Journal', () => {
     expect(openJournal(path)).toBeInstanceOf(Journal);
+  });
+});
+
+describe('versions', () => {
+  it('stamps the current version on everything it writes', () => {
+    const journal = openJournal(path);
+    expect(journal.append([{ kind: 'a' }])[0].version).toBe(CURRENT_VERSION);
+  });
+
+  it('lets a record set its own version, which the migration tests need', () => {
+    const journal = openJournal(path);
+    expect(journal.append([{ kind: 'a', version: 2 }])[0].version).toBe(2);
+  });
+
+  it('migrates an old entry on the way out of the file', () => {
+    const flat = join(dir, 'old.jsonl');
+    writeFileSync(flat, '{"seq":1,"kind":"tract.saved","id":"T-7"}\n');
+    const journal = openJournal(flat);
+    expect(journal.all()[0].version).toBe(CURRENT_VERSION);
+    expect(journal.all()[0].actor).toBe('scale house');
+  });
+
+  it('leaves the file itself alone', () => {
+    const flat = join(dir, 'old.jsonl');
+    const original = '{"seq":1,"kind":"tract.saved","id":"T-7"}\n';
+    writeFileSync(flat, original);
+    openJournal(flat);
+    expect(readFileSync(flat, 'utf8')).toBe(original);
+  });
+
+  it('can be told not to migrate at all', () => {
+    const flat = join(dir, 'old.jsonl');
+    writeFileSync(flat, '{"seq":1,"kind":"tract.saved","id":"T-7"}\n');
+    expect(openJournal(flat, { migrate: false }).all()[0].actor).toBeUndefined();
+  });
+
+  it('counts what the file holds by version', () => {
+    const flat = join(dir, 'mixed.jsonl');
+    writeFileSync(
+      flat,
+      '{"seq":1,"kind":"tract.saved","id":"T-7"}\n{"seq":2,"version":3,"kind":"tract.saved","id":"T-8"}\n'
+    );
+    expect(openJournal(flat).census()).toEqual([
+      { version: 1, count: 1, current: false },
+      { version: 3, count: 1, current: true },
+    ]);
   });
 });

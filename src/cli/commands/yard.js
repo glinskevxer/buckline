@@ -86,6 +86,13 @@ export function runYardStatus(options, context) {
       { key: 'applied', header: 'applied' },
       { key: 'skipped', header: 'skipped' },
     ]),
+    '',
+    heading('Entry versions', { rule: '-' }),
+    table(status.versions, [
+      { key: 'version', header: 'written under' },
+      { key: 'count', header: 'entries' },
+      { key: 'current', header: 'current' },
+    ]),
   ].join('\n');
 }
 

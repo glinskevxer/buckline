@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { makeTract } from '../../src/model/tract.js';
 import { LockError, acquire, release } from '../../src/store/lock.js';
 import { RepoError, Yard, openYard } from '../../src/store/repo.js';
 
@@ -231,5 +232,36 @@ describe('locking and snapshots', () => {
     const plain = openYard(path, { snapshots: false });
     expect(plain.status().hydration).toEqual([]);
     expect(plain.getTract('T-7').name).toBe('Culpeper 40');
+  });
+});
+
+describe('entry versions', () => {
+  it('reports what the book holds by version', () => {
+    yard.saveTract(tract);
+    yard.receiveLoad(load);
+    const versions = yard.status().versions;
+    expect(versions).toHaveLength(1);
+    expect(versions[0].current).toBe(true);
+    expect(versions[0].count).toBe(2);
+  });
+
+  it('reads an older book and reports the mix', () => {
+    writeFileSync(
+      path,
+      `${JSON.stringify({ seq: 1, kind: 'tract.saved', id: 'T-7', record: makeTract(tract) })}\n`
+    );
+    const older = openYard(path, { snapshots: false });
+    expect(older.status().versions[0].version).toBe(1);
+    expect(older.getTract('T-7').name).toBe('Culpeper 40');
+  });
+
+  it('carries an older entry forward when something new is written', () => {
+    writeFileSync(
+      path,
+      `${JSON.stringify({ seq: 1, kind: 'tract.saved', id: 'T-7', record: makeTract(tract) })}\n`
+    );
+    const older = openYard(path, { snapshots: false });
+    older.saveTract({ ...tract, id: 'T-8' });
+    expect(older.status().versions.map((row) => row.version)).toEqual([1, 3]);
   });
 });
