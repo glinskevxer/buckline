@@ -18,6 +18,7 @@ import { Command } from 'commander';
 import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
 export { FORMATS, requireFormat } from './render/index.js';
+import { registerAudit } from './commands/audit.js';
 import { registerBuck } from './commands/buck.js';
 import { registerDeck } from './commands/deck.js';
 import { registerGrade } from './commands/grade.js';
@@ -55,6 +56,7 @@ export function buildProgram(context) {
   registerKiln(program, context);
   registerDeck(program, context);
   registerPeriod(program, context);
+  registerAudit(program, context);
   return program;
 }
 
