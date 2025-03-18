@@ -12,80 +12,81 @@
  * program.
  */
 
-import { block, heading, money, table } from '../cli/render/table.js';
+import { money } from '../cli/render/table.js';
+import { document, title } from './layout.js';
 import { cullReport, deductionShare } from '../scale/ticket.js';
 import { statementSummary } from '../settle/statement.js';
 
 /** The scale ticket, as it is printed and handed over. */
 export function scaleTicketDocument(ticket, options = {}) {
   const { copies = ['mill', 'seller'], producedBy = 'buckline' } = options;
-  const parts = [
-    heading(`Scale ticket ${ticket.ticketId ?? ''}`.trim()),
-    block({
-      load: ticket.loadId ?? '',
-      tract: ticket.tractId ?? '',
-      rule: ticket.ruleLabel,
-      scaler: ticket.scaledBy ?? '',
-      logs: ticket.logCount,
-      culled: ticket.culledCount,
-    }),
-    '',
-    table(
-      ticket.lines,
-      [
+  const culls = cullReport(ticket);
+
+  return document([
+    title(`Scale ticket ${ticket.ticketId ?? ''}`.trim()),
+    {
+      fields: {
+        load: ticket.loadId ?? '',
+        tract: ticket.tractId ?? '',
+        rule: ticket.ruleLabel,
+        scaler: ticket.scaledBy ?? '',
+        logs: ticket.logCount,
+        culled: ticket.culledCount,
+      },
+    },
+    {
+      rows: ticket.lines,
+      columns: [
         { key: 'logId', header: 'log' },
         { key: 'grossBoardFeet', header: 'gross' },
         { key: 'netBoardFeet', header: 'net' },
         { key: 'cullReason', header: 'note' },
       ],
-      {
-        totals: {
-          logId: 'total',
-          grossBoardFeet: ticket.grossBoardFeet,
-          netBoardFeet: ticket.netBoardFeet,
-        },
-      }
-    ),
-    '',
-    block({
-      gross: ticket.grossBoardFeet,
-      deduction: ticket.deductionBoardFeet,
-      net: ticket.netBoardFeet,
-      'deduction share': percent(deductionShare(ticket)),
-    }),
-  ];
-
-  const culls = cullReport(ticket);
-  if (culls.length > 0) {
-    parts.push('', heading('Culled', { rule: '-' }));
-    parts.push(
-      table(culls, [
+      totals: {
+        logId: 'total',
+        grossBoardFeet: ticket.grossBoardFeet,
+        netBoardFeet: ticket.netBoardFeet,
+      },
+    },
+    {
+      fields: {
+        gross: ticket.grossBoardFeet,
+        deduction: ticket.deductionBoardFeet,
+        net: ticket.netBoardFeet,
+        'deduction share': percent(deductionShare(ticket)),
+      },
+    },
+    {
+      title: 'Culled',
+      rows: culls,
+      columns: [
         { key: 'logId', header: 'log' },
         { key: 'grossBoardFeet', header: 'gross' },
         { key: 'reason', header: 'reason' },
-      ])
-    );
-  }
-
-  parts.push('', footer(producedBy, `scaled ${ticket.ruleLabel}`), '', copyLines(copies));
-  return parts.join('\n');
+      ],
+    },
+    footer(producedBy, `scaled ${ticket.ruleLabel}`),
+    copyLines(copies),
+  ]);
 }
 
 /** The settlement statement, as it is printed and posted. */
 export function settlementDocument(statement, options = {}) {
   const { producedBy = 'buckline' } = options;
-  const parts = [
-    heading(`Settlement ${statement.statementId}`),
-    block({
-      load: statement.loadId,
-      'scaled on': statement.scaledOn,
-      agreement: statement.agreement,
-      'market index': statement.marketIndex ?? 'not read',
-    }),
-    '',
-    table(
-      statement.lines,
-      [
+
+  return document([
+    title(`Settlement ${statement.statementId}`),
+    {
+      fields: {
+        load: statement.loadId,
+        'scaled on': statement.scaledOn,
+        agreement: statement.agreement,
+        'market index': statement.marketIndex ?? 'not read',
+      },
+    },
+    {
+      rows: statement.lines,
+      columns: [
         { key: 'species', header: 'species' },
         { key: 'grade', header: 'grade' },
         { key: 'netBoardFeet', header: 'net bf' },
@@ -93,41 +94,36 @@ export function settlementDocument(statement, options = {}) {
         { key: 'perMbf', header: 'rate' },
         { key: 'value', header: 'value', format: (value) => money(value) },
       ],
-      {
-        totals: {
-          species: 'total',
-          netBoardFeet: Math.round(statement.netMbf * 1000),
-          value: statement.gross,
-        },
-      }
-    ),
-    '',
-    heading('Deductions', { rule: '-' }),
-    table(statement.deductions.lines, [
-      { key: 'name', header: 'deduction' },
-      { key: 'class', header: 'class' },
-      { key: 'basis', header: 'basis' },
-      { key: 'amount', header: 'amount', format: (value) => money(value) },
-      { key: 'reason', header: 'note' },
-    ]),
-    '',
-    table(statementSummary(statement), [
-      { key: 'label', header: '' },
-      { key: 'amount', header: 'amount', format: (value) => money(value) },
-    ]),
-  ];
-
-  if (statement.underwater.underwater) {
-    parts.push('', `WARNING: ${statement.underwater.parties.join(' and ')} owe money on this load`);
-  }
-
-  parts.push(
-    '',
+      totals: {
+        species: 'total',
+        netBoardFeet: Math.round(statement.netMbf * 1000),
+        value: statement.gross,
+      },
+    },
+    {
+      title: 'Deductions',
+      rows: statement.deductions.lines,
+      columns: [
+        { key: 'name', header: 'deduction' },
+        { key: 'class', header: 'class' },
+        { key: 'basis', header: 'basis' },
+        { key: 'amount', header: 'amount', format: (value) => money(value) },
+        { key: 'reason', header: 'note' },
+      ],
+    },
+    {
+      rows: statementSummary(statement),
+      columns: [
+        { key: 'label', header: '' },
+        { key: 'amount', header: 'amount', format: (value) => money(value) },
+      ],
+    },
+    statement.underwater.underwater
+      ? `WARNING: ${statement.underwater.parties.join(' and ')} owe money on this load`
+      : '',
     footer(producedBy, `agreement ${statement.agreement}`),
-    '',
-    signatureLines(['landowner', 'logger'])
-  );
-  return parts.join('\n');
+    signatureLines(['landowner', 'logger']),
+  ]);
 }
 
 /** The line at the bottom of every document. */
