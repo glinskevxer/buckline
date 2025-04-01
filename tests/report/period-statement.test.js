@@ -4,6 +4,7 @@ import { makeSplit } from '../../src/settle/split.js';
 import { settle } from '../../src/settle/statement.js';
 import { rollUp } from '../../src/settle/period.js';
 import {
+  accountDocument,
   accountHistory,
   accountLines,
   periodStatementDocument,
@@ -132,5 +133,41 @@ describe('accountHistory', () => {
 
   it('carries the advance still owing forward', () => {
     expect(accountHistory([period])[0].advanceOwing).toBeGreaterThan(0);
+  });
+});
+
+describe('accountDocument', () => {
+  const earlier = rollUp([statement('ST-0', '2024-12-18', 3300)], agreement, {
+    period: '2024-12',
+    openingAdvance: 5000,
+  });
+  const document = accountDocument([earlier, period], { landowner: 'E. Whitlock' });
+
+  it('heads the running account', () => {
+    expect(document.split('\n')[0]).toBe('Running account');
+  });
+
+  it('lists a row per period, newest first', () => {
+    const lines = document.split('\n');
+    const first = lines.findIndex((line) => line.includes('2025-01'));
+    const second = lines.findIndex((line) => line.includes('2024-12'));
+    expect(first).toBeLessThan(second);
+  });
+
+  it('totals the periods', () => {
+    expect(document).toContain('total');
+  });
+
+  it('says how much of the advance is left', () => {
+    expect(document).toContain('of the advance is still to be recovered');
+  });
+
+  it('says nothing about an advance that is clear', () => {
+    const clear = rollUp(statements, agreement, { period: '2025-01', openingAdvance: 0 });
+    expect(accountDocument([clear])).not.toContain('still to be recovered');
+  });
+
+  it('takes the landowner off the periods when none is named', () => {
+    expect(accountDocument([period])).toContain('E. Whitlock');
   });
 });

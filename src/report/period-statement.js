@@ -14,7 +14,8 @@
  */
 
 import { round2 } from '../num.js';
-import { block, heading, money, table } from '../cli/render/table.js';
+import { money } from '../cli/render/table.js';
+import { document, title } from './layout.js';
 import { periodBySpecies } from '../settle/period.js';
 import { footer, signatureLines } from './documents.js';
 
@@ -22,18 +23,19 @@ import { footer, signatureLines } from './documents.js';
 export function periodStatementDocument(period, statements, options = {}) {
   const { producedBy = 'buckline', showSpecies = true } = options;
 
-  const parts = [
-    heading(`Statement of account, ${period.period ?? 'period'}`),
-    block({
-      landowner: period.landowner ?? '',
-      agreement: period.agreement,
-      loads: period.loadCount,
-      'thousand board feet': period.netMbf,
-    }),
-    '',
-    table(
-      period.loads,
-      [
+  return document([
+    title(`Statement of account, ${period.period ?? 'period'}`),
+    {
+      fields: {
+        landowner: period.landowner ?? '',
+        agreement: period.agreement,
+        loads: period.loadCount,
+        'thousand board feet': period.netMbf,
+      },
+    },
+    {
+      rows: period.loads,
+      columns: [
         { key: 'scaledOn', header: 'scaled' },
         { key: 'loadId', header: 'load' },
         { key: 'netMbf', header: 'mbf' },
@@ -41,46 +43,31 @@ export function periodStatementDocument(period, statements, options = {}) {
         { key: 'deductions', header: 'deducted', format: (value) => money(value) },
         { key: 'landowner', header: 'to you', format: (value) => money(value) },
       ],
-      {
-        totals: {
-          scaledOn: 'total',
-          netMbf: period.netMbf,
-          gross: period.gross,
-          deductions: period.deductions,
-          landowner: period.landownerNet,
-        },
-      }
-    ),
-  ];
-
-  if (showSpecies && statements) {
-    parts.push('', heading('By species', { rule: '-' }));
-    parts.push(
-      table(periodBySpecies(statements), [
+      totals: {
+        scaledOn: 'total',
+        netMbf: period.netMbf,
+        gross: period.gross,
+        deductions: period.deductions,
+        landowner: period.landownerNet,
+      },
+    },
+    {
+      title: 'By species',
+      rows: showSpecies && statements ? periodBySpecies(statements) : [],
+      columns: [
         { key: 'species', header: 'species' },
         { key: 'netBoardFeet', header: 'bd ft' },
         { key: 'perMbf', header: 'per mbf', format: (value) => money(value) },
         { key: 'value', header: 'value', format: (value) => money(value) },
-      ])
-    );
-  }
-
-  parts.push('', heading('Account', { rule: '-' }), block(accountLines(period)));
-
-  if (period.minimumVolume.applies) {
-    parts.push(
-      '',
-      `The agreement calls for ${period.minimumVolume.shortfallMbf} thousand board feet more than was cut this period.`
-    );
-  }
-
-  parts.push(
-    '',
+      ],
+    },
+    { title: 'Account', fields: accountLines(period) },
+    period.minimumVolume.applies
+      ? `The agreement calls for ${period.minimumVolume.shortfallMbf} thousand board feet more than was cut this period.`
+      : '',
     footer(producedBy, `agreement ${period.agreement}`),
-    '',
-    signatureLines(['landowner'])
-  );
-  return parts.join('\n');
+    signatureLines(['landowner']),
+  ]);
 }
 
 /** The account section, which is the part that gets read. */
@@ -124,4 +111,45 @@ export function accountHistory(periods) {
       payable: round2(period.payable),
       advanceOwing: round2(period.advance.remaining),
     }));
+}
+
+/**
+ * The running account across several periods. A landowner on a long sale asks
+ * for this once a year, and the question behind it is always the same one:
+ * how much of the advance is left.
+ */
+export function accountDocument(periods, options = {}) {
+  const { producedBy = 'buckline', landowner = null, agreement = null } = options;
+  const rows = accountHistory(periods);
+
+  return document([
+    title('Running account'),
+    {
+      fields: {
+        landowner: landowner ?? periods[0]?.landowner ?? '',
+        agreement: agreement ?? periods[0]?.agreement ?? '',
+        periods: rows.length,
+      },
+    },
+    {
+      rows,
+      columns: [
+        { key: 'period', header: 'period' },
+        { key: 'loads', header: 'loads' },
+        { key: 'netMbf', header: 'mbf' },
+        { key: 'payable', header: 'paid', format: (value) => money(value) },
+        { key: 'advanceOwing', header: 'advance left', format: (value) => money(value) },
+      ],
+      totals: {
+        period: 'total',
+        loads: rows.reduce((sum, row) => sum + row.loads, 0),
+        netMbf: round2(rows.reduce((sum, row) => sum + row.netMbf, 0)),
+        payable: round2(rows.reduce((sum, row) => sum + row.payable, 0)),
+      },
+    },
+    rows.length > 0 && rows[0].advanceOwing > 0
+      ? `${money(rows[0].advanceOwing)} of the advance is still to be recovered.`
+      : '',
+    footer(producedBy, `agreement ${agreement ?? periods[0]?.agreement ?? 'on file'}`),
+  ]);
 }
