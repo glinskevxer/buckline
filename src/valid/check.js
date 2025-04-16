@@ -24,6 +24,16 @@ export const list = (of, options = {}) => field('array', { of, ...options });
 export const object = (shape, options = {}) => field('object', { shape, ...options });
 
 /**
+ * A calendar date written the only way anybody should write one. Dates were
+ * being checked with a regular expression in four modules and two of them
+ * accepted the thirty second of a month.
+ */
+export const date = (options = {}) => field('date', options);
+
+/** A whole number, which is the case that kept being written by hand. */
+export const integer = (options = {}) => field('number', { integer: true, ...options });
+
+/**
  * Validates `value` against `schema` and returns a new object holding only the
  * declared fields, with defaults filled in. Throws a ValidationError carrying
  * every issue found, not just the first, because a scaler retyping a ticket
@@ -96,6 +106,8 @@ function checkField(raw, descriptor, path, issues) {
         return undefined;
       }
       return raw;
+    case 'date':
+      return checkDate(raw, descriptor, path, issues);
     case 'array':
       return checkArray(raw, descriptor, path, issues);
     case 'object':
@@ -158,4 +170,51 @@ function checkArray(raw, descriptor, path, issues) {
     if (checked !== undefined) out.push(checked);
   });
   return out;
+}
+
+const DATE_SHAPE = /^\d{4}-\d{2}-\d{2}$/;
+
+function checkDate(raw, descriptor, path, issues) {
+  if (typeof raw !== 'string' || !DATE_SHAPE.test(raw)) {
+    issues.push({ path, message: 'must be a date written as four digits, month and day' });
+    return undefined;
+  }
+  const parsed = new Date(`${raw}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== raw) {
+    issues.push({ path, message: `is not a real date` });
+    return undefined;
+  }
+  if (descriptor.notBefore && raw < descriptor.notBefore) {
+    issues.push({ path, message: `must not be before ${descriptor.notBefore}` });
+    return undefined;
+  }
+  if (descriptor.notAfter && raw > descriptor.notAfter) {
+    issues.push({ path, message: `must not be after ${descriptor.notAfter}` });
+    return undefined;
+  }
+  return raw;
+}
+
+/**
+ * A plain description of a schema, for a help message or an error that needs
+ * to say what was wanted rather than only what was wrong.
+ */
+export function describeSchema(shape, prefix = '') {
+  const lines = [];
+  for (const [key, descriptor] of Object.entries(shape)) {
+    const name = prefix ? `${prefix}.${key}` : key;
+    if (descriptor.type === 'object' && descriptor.shape) {
+      lines.push(...describeSchema(descriptor.shape, name));
+      continue;
+    }
+    const bits = [descriptor.type];
+    if (descriptor.oneOf) bits.push(`one of ${descriptor.oneOf.join(', ')}`);
+    if (descriptor.min !== undefined) bits.push(`at least ${descriptor.min}`);
+    if (descriptor.max !== undefined) bits.push(`at most ${descriptor.max}`);
+    if (descriptor.integer) bits.push('whole');
+    if (descriptor.optional) bits.push('optional');
+    if (descriptor.default !== undefined) bits.push('has a default');
+    lines.push(`${name}: ${bits.join(', ')}`);
+  }
+  return lines;
 }

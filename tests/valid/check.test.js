@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { ValidationError } from '../../src/errors.js';
-import { boolean, collect, list, number, object, string, validate } from '../../src/valid/check.js';
+import {
+  boolean,
+  collect,
+  date,
+  describeSchema,
+  integer,
+  list,
+  number,
+  object,
+  string,
+  validate,
+} from '../../src/valid/check.js';
 
 const logSchema = {
   id: string(),
@@ -99,5 +110,69 @@ describe('collect', () => {
     const result = collect(good, logSchema);
     expect(result.ok).toBe(true);
     expect(result.value.id).toBe('L-1001');
+  });
+});
+
+describe('date fields', () => {
+  const schema = { on: date(), from: date({ notBefore: '2024-01-01', optional: true }) };
+
+  it('accepts a real date', () => {
+    expect(validate({ on: '2025-04-15' }, schema).on).toBe('2025-04-15');
+  });
+
+  it('refuses a date written any other way', () => {
+    expect(() => validate({ on: '15/04/2025' }, schema)).toThrow(ValidationError);
+    expect(() => validate({ on: '2025-4-15' }, schema)).toThrow(ValidationError);
+    expect(() => validate({ on: 20250415 }, schema)).toThrow(ValidationError);
+  });
+
+  it('refuses a day that does not exist', () => {
+    expect(() => validate({ on: '2025-02-32' }, schema)).toThrow(ValidationError);
+    expect(() => validate({ on: '2025-02-30' }, schema)).toThrow(ValidationError);
+  });
+
+  it('accepts a leap day in a leap year and refuses it otherwise', () => {
+    expect(validate({ on: '2024-02-29' }, schema).on).toBe('2024-02-29');
+    expect(() => validate({ on: '2025-02-29' }, schema)).toThrow(ValidationError);
+  });
+
+  it('honours a lower bound', () => {
+    const result = collect({ on: '2025-04-15', from: '2023-12-31' }, schema, { label: 'x' });
+    expect(result.issues[0].message).toContain('not be before');
+  });
+
+  it('honours an upper bound', () => {
+    const bounded = { on: date({ notAfter: '2025-01-01' }) };
+    expect(() => validate({ on: '2025-06-01' }, bounded)).toThrow(ValidationError);
+  });
+});
+
+describe('integer fields', () => {
+  it('are a shorthand for a whole number', () => {
+    const schema = { count: integer({ min: 0 }) };
+    expect(validate({ count: 3 }, schema).count).toBe(3);
+    expect(() => validate({ count: 3.5 }, schema)).toThrow(ValidationError);
+  });
+});
+
+describe('describeSchema', () => {
+  it('writes a line per field', () => {
+    const lines = describeSchema({ id: string(), count: integer({ min: 1, optional: true }) });
+    expect(lines).toHaveLength(2);
+    expect(lines[1]).toContain('whole');
+    expect(lines[1]).toContain('optional');
+  });
+
+  it('walks into a nested object and names the full path', () => {
+    const lines = describeSchema({ contract: object({ rule: string() }) });
+    expect(lines).toEqual(['contract.rule: string']);
+  });
+
+  it('says when a field has a default', () => {
+    expect(describeSchema({ a: boolean({ default: false }) })[0]).toContain('has a default');
+  });
+
+  it('lists the values an enumerated field takes', () => {
+    expect(describeSchema({ a: string({ oneOf: ['x', 'y'] }) })[0]).toContain('one of x, y');
   });
 });
