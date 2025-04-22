@@ -15,6 +15,7 @@
 import { BucklineError } from '../errors.js';
 import { round2, round4 } from '../num.js';
 import { ruleIds } from '../scale/rules/index.js';
+import { date, list, string, validateAs } from '../valid/check.js';
 
 export class ScalerError extends BucklineError {
   constructor(message, options = {}) {
@@ -26,57 +27,58 @@ export class ScalerError extends BucklineError {
 /** What a certificate can be in. */
 export const CERTIFICATE_STATES = ['current', 'suspended', 'withdrawn'];
 
-/** Builds a scaler record. */
-export function makeScaler(spec) {
-  const {
-    id,
-    name,
-    endorsements = [],
-    certifiedFrom,
-    certifiedTo,
-    state = 'current',
-    suspendedReason = null,
-  } = spec;
+const scalerSchema = {
+  id: string(),
+  name: string(),
+  endorsements: list(string(), { minLength: 1 }),
+  certifiedFrom: date(),
+  certifiedTo: date(),
+  state: string({ oneOf: CERTIFICATE_STATES, default: 'current' }),
+  suspendedReason: string({ optional: true }),
+};
 
-  if (!id || !name) {
-    throw new ScalerError('a scaler needs an identifier and a name', { path: 'id' });
-  }
-  if (!CERTIFICATE_STATES.includes(state)) {
-    throw new ScalerError(`no certificate is ${state}`, { path: 'state' });
-  }
-  if (endorsements.length === 0) {
-    throw new ScalerError(`${name} is endorsed on nothing`, { path: 'endorsements' });
-  }
+/**
+ * Builds a scaler record.
+ *
+ * The shape is checked by the schema and the cross field rules are checked
+ * here, because a schema cannot say that a suspension needs a reason or that
+ * an endorsement has to name a rule this program scales under.
+ */
+export function makeScaler(spec) {
+  const checked = validateAs(
+    spec,
+    scalerSchema,
+    (error) => new ScalerError(error.message, { path: error.path, cause: error }),
+    { label: 'scaler' }
+  );
+
   const known = ruleIds();
-  for (const rule of endorsements) {
+  for (const rule of checked.endorsements) {
     if (!known.includes(rule)) {
-      throw new ScalerError(`${name} is endorsed on ${rule}, which nobody scales under`, {
+      throw new ScalerError(`${checked.name} is endorsed on ${rule}, which nobody scales under`, {
         path: 'endorsements',
       });
     }
   }
-  if (!certifiedFrom || !certifiedTo) {
-    throw new ScalerError(`${name} has no certificate dates`, { path: 'certifiedFrom' });
-  }
-  if (certifiedTo < certifiedFrom) {
-    throw new ScalerError(`${name} has a certificate that ends before it starts`, {
+  if (checked.certifiedTo < checked.certifiedFrom) {
+    throw new ScalerError(`${checked.name} has a certificate that ends before it starts`, {
       path: 'certifiedTo',
     });
   }
-  if (state === 'suspended' && !suspendedReason) {
-    throw new ScalerError(`${name} is suspended for no stated reason`, {
+  if (checked.state === 'suspended' && !checked.suspendedReason) {
+    throw new ScalerError(`${checked.name} is suspended for no stated reason`, {
       path: 'suspendedReason',
     });
   }
 
   return {
-    id,
-    name,
-    endorsements: [...endorsements].sort(),
-    certifiedFrom,
-    certifiedTo,
-    state,
-    suspendedReason,
+    id: checked.id,
+    name: checked.name,
+    endorsements: [...checked.endorsements].sort(),
+    certifiedFrom: checked.certifiedFrom,
+    certifiedTo: checked.certifiedTo,
+    state: checked.state,
+    suspendedReason: checked.suspendedReason ?? null,
   };
 }
 

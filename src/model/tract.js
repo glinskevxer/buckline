@@ -14,7 +14,7 @@ import { getRule } from '../scale/rules/index.js';
 import { isMeasurable } from '../scale/defect/policy.js';
 import { defectType } from '../scale/defect/types.js';
 import { SWEEP_ALLOWANCES } from '../scale/defect/sweep.js';
-import { boolean, list, number, object, string, validate } from '../valid/check.js';
+import { boolean, date, list, number, object, string, validate } from '../valid/check.js';
 
 const contractSchema = {
   rule: string(),
@@ -33,8 +33,8 @@ const tractSchema = {
   owner: string(),
   county: string({ optional: true }),
   acres: number({ min: 0, optional: true }),
-  openedOn: string({ optional: true }),
-  closedOn: string({ optional: true }),
+  openedOn: date({ optional: true }),
+  closedOn: date({ optional: true }),
   clearcut: boolean({ default: false }),
   contract: object(contractSchema),
 };

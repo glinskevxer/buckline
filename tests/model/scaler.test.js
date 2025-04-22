@@ -188,3 +188,36 @@ describe('describeScaler and passRate', () => {
     expect(passRate([])).toBeNull();
   });
 });
+
+describe('the schema behind a scaler', () => {
+  it('refuses a certificate date written any other way', () => {
+    expect(() => makeScaler({ ...spec, certifiedFrom: '01/01/2024' })).toThrow(ScalerError);
+  });
+
+  it('refuses a day that does not exist', () => {
+    expect(() => makeScaler({ ...spec, certifiedTo: '2025-06-31' })).toThrow(ScalerError);
+  });
+
+  it('drops a field the schema does not declare', () => {
+    expect(makeScaler({ ...spec, favouriteRule: 'doyle' }).favouriteRule).toBeUndefined();
+  });
+
+  it('defaults the state to current', () => {
+    expect(makeScaler({ ...spec, state: undefined }).state).toBe('current');
+  });
+
+  it('reports every shape problem at once', () => {
+    let caught;
+    try {
+      makeScaler({ id: '', name: '', endorsements: [], certifiedFrom: 'x' });
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(ScalerError);
+    expect(caught.message.split(';').length).toBeGreaterThan(2);
+  });
+
+  it('leaves the suspension reason null when there is none', () => {
+    expect(makeScaler(spec).suspendedReason).toBeNull();
+  });
+});

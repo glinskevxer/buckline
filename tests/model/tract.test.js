@@ -128,3 +128,18 @@ describe('tractOpenOn', () => {
     expect(tractOpenOn(open, '1999-01-01')).toBe(true);
   });
 });
+
+describe('tract dates', () => {
+  it('refuses a date written any other way', () => {
+    expect(() => makeTract({ ...raw, openedOn: '01/02/2024' })).toThrow(ValidationError);
+  });
+
+  it('refuses a day that does not exist', () => {
+    expect(() => makeTract({ ...raw, closedOn: '2024-06-31' })).toThrow(ValidationError);
+  });
+
+  it('takes a tract with no dates at all', () => {
+    const open = makeTract({ ...raw, openedOn: undefined, closedOn: undefined });
+    expect(open.openedOn).toBeUndefined();
+  });
+});

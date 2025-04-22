@@ -53,6 +53,20 @@ export function validate(value, schema, options = {}) {
   return out;
 }
 
+/**
+ * Validates and rethrows as whatever error the caller's layer uses. Every
+ * module that builds a record wants its own error type on the way out, and
+ * they were all hand rolling the shape checks to get one.
+ */
+export function validateAs(value, schema, wrap, options = {}) {
+  try {
+    return validate(value, schema, options);
+  } catch (error) {
+    if (error instanceof ValidationError) throw wrap(error);
+    throw error;
+  }
+}
+
 /** Same checks, but returns the issues instead of throwing. */
 export function collect(value, schema, options = {}) {
   try {
