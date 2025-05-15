@@ -14,6 +14,7 @@
  */
 
 import { emit } from './io.js';
+import { CONFIG_KEYS } from './config.js';
 
 /** Hangs a list of options on a command. */
 export function addOptions(command, options = []) {
@@ -37,12 +38,16 @@ export function addOptions(command, options = []) {
 export function reportCommand(parent, context, spec) {
   const command = parent.command(spec.name).description(spec.description);
   addOptions(command, spec.options);
+  // No commander default on the format. A default is filled in before the
+  // command sees the options, so declaring one here would make a format set in
+  // the yard file impossible to tell from a typed one, and the file would
+  // never win.
   addOptions(command, [
-    { flags: '-f, --format <format>', description: 'text, csv or json', default: 'text' },
+    { flags: '-f, --format <format>', description: 'text, csv or json' },
     { flags: '-o, --output <file>', description: 'write to a file instead of the screen' },
   ]);
   command.action((options) => {
-    emit(context, spec.run(options, context), options);
+    emit(context, spec.run(withConfig(options, context), context), options);
   });
   return command;
 }
@@ -52,12 +57,10 @@ export function actionCommand(parent, context, spec) {
   const command = parent.command(spec.name).description(spec.description);
   addOptions(command, spec.options);
   if (spec.formats) {
-    addOptions(command, [
-      { flags: '-f, --format <format>', description: 'text or json', default: 'text' },
-    ]);
+    addOptions(command, [{ flags: '-f, --format <format>', description: 'text or json' }]);
   }
   command.action((options) => {
-    emit(context, spec.run(options, context), options);
+    emit(context, spec.run(withConfig(options, context), context), options);
   });
   return command;
 }
@@ -70,4 +73,20 @@ export function required(flags, description) {
 /** Shorthand for an optional one. */
 export function optional(flags, description, value) {
   return { flags, description, default: value };
+}
+
+/**
+ * Fills in anything the yard file knows and the command line did not say.
+ * Only the keys the file is allowed to set, so a stray key in the file cannot
+ * reach into a command it has no business in.
+ */
+export function withConfig(options, context) {
+  const config = context.config?.values ?? {};
+  const merged = { ...options };
+  for (const key of CONFIG_KEYS) {
+    if (merged[key] === undefined && config[key] !== undefined) {
+      merged[key] = config[key];
+    }
+  }
+  return merged;
 }

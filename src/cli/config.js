@@ -23,6 +23,9 @@ import { object, string, validate } from '../valid/check.js';
 /** The file a yard keeps its defaults in. */
 export const CONFIG_NAME = 'buckline.json';
 
+/** The options the file is allowed to set. Nothing else reaches a command. */
+export const CONFIG_KEYS = ['yard', 'prices', 'rule', 'terms', 'tract', 'format', 'actor'];
+
 const configSchema = {
   yard: string({ optional: true }),
   prices: string({ optional: true }),

@@ -58,7 +58,7 @@ describe('reportCommand', () => {
     expect(flags).toContain('-o, --output <file>');
   });
 
-  it('defaults every report to text', () => {
+  it('declares no commander default on the format', () => {
     const parent = program();
     const command = reportCommand(parent, makeContext(), {
       name: 'x',
@@ -66,7 +66,43 @@ describe('reportCommand', () => {
       run: () => 'done',
     });
     const format = command.options.find((option) => option.flags.includes('--format'));
-    expect(format.defaultValue).toBe('text');
+    expect(format.defaultValue).toBeUndefined();
+  });
+
+  it('fills the format in from the yard file when it was not typed', () => {
+    const context = makeContext({ config: { path: 'buckline.json', values: { format: 'json' } } });
+    const parent = program();
+    reportCommand(parent, context, {
+      name: 'x',
+      description: 'x',
+      run: (options) => `format ${options.format}`,
+    });
+    parent.parse(['x'], { from: 'user' });
+    expect(context.captured()).toBe('format json');
+  });
+
+  it('lets what was typed beat the yard file', () => {
+    const context = makeContext({ config: { path: 'buckline.json', values: { format: 'json' } } });
+    const parent = program();
+    reportCommand(parent, context, {
+      name: 'x',
+      description: 'x',
+      run: (options) => `format ${options.format}`,
+    });
+    parent.parse(['x', '-f', 'csv'], { from: 'user' });
+    expect(context.captured()).toBe('format csv');
+  });
+
+  it('never reaches into a command with a key the file may not set', () => {
+    const context = makeContext({ config: { path: 'x', values: { colour: 'green' } } });
+    const parent = program();
+    reportCommand(parent, context, {
+      name: 'x',
+      description: 'x',
+      run: (options) => `colour ${options.colour}`,
+    });
+    parent.parse(['x'], { from: 'user' });
+    expect(context.captured()).toBe('colour undefined');
   });
 
   it('runs the command and emits what came back', () => {

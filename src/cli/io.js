@@ -40,6 +40,7 @@ export function makeContext(options = {}) {
   const errors = [];
   return {
     cwd: options.cwd ?? process.cwd(),
+    config: options.config ?? { path: null, values: {} },
     yardPath: options.yardPath ?? null,
     out: options.out ?? ((text) => lines.push(text)),
     err: options.err ?? ((text) => errors.push(text)),

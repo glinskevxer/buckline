@@ -17,9 +17,10 @@
 import { Command } from 'commander';
 import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
-export { FORMATS, requireFormat } from './render/index.js';
+import { loadConfig } from './config.js';
 import { registerAudit } from './commands/audit.js';
 import { registerBuck } from './commands/buck.js';
+import { registerConfig } from './commands/config.js';
 import { registerDeck } from './commands/deck.js';
 import { registerGrade } from './commands/grade.js';
 import { registerKiln } from './commands/kiln.js';
@@ -27,9 +28,11 @@ import { registerPeriod } from './commands/period.js';
 import { registerReport } from './commands/report.js';
 import { registerRules } from './commands/rules.js';
 import { registerScale } from './commands/scale.js';
-import { registerTally } from './commands/tally.js';
 import { registerSettle } from './commands/settle.js';
+import { registerTally } from './commands/tally.js';
 import { registerYard } from './commands/yard.js';
+
+export { FORMATS, requireFormat } from './render/index.js';
 
 export const VERSION = '0.5.0';
 
@@ -59,6 +62,7 @@ export function buildProgram(context) {
   registerPeriod(program, context);
   registerAudit(program, context);
   registerTally(program, context);
+  registerConfig(program, context);
   return program;
 }
 
@@ -69,16 +73,23 @@ export function buildProgram(context) {
  */
 export function run(argv, options = {}) {
   const context = options.context ?? makeContext(options);
-  const program = buildProgram(context);
 
   try {
+    // The yard file is read inside the guard on purpose. A file that will not
+    // parse is a bad input and has to come back as an exit code, and reading
+    // it before the guard threw a stack trace at whoever wrote the file.
+    if (!options.context) {
+      context.config = loadConfig(context.cwd);
+    }
+    const program = buildProgram(context);
     program.parse(argv, { from: 'user' });
     return { code: EXIT.ok, context };
   } catch (error) {
-    if (error.code === 'commander.helpDisplayed' || error.code === 'commander.version') {
-      return { code: EXIT.ok, context };
-    }
-    if (error.code === 'commander.help') {
+    if (
+      error.code === 'commander.helpDisplayed' ||
+      error.code === 'commander.version' ||
+      error.code === 'commander.help'
+    ) {
       return { code: EXIT.ok, context };
     }
     if (typeof error.code === 'string' && error.code.startsWith('commander.')) {
