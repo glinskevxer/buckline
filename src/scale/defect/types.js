@@ -40,7 +40,12 @@ const CATALOGUE = {
     id: 'butt flare',
     label: 'butt flare',
     kind: 'form',
-    extent: 'local',
+    // Shell rather than local. The flare is extra wood on the outside of the
+    // butt and the deduction is to scale the log at the diameter it would have
+    // had without it, which is a diameter deduction. Nothing can measure a
+    // local fault on the diameter, so calling it local made it unmeasurable
+    // by the only method it prefers.
+    extent: 'shell',
     sound: true,
     surfaceVisible: true,
     affectsLogGrade: false,
