@@ -22,6 +22,7 @@ import { registerAudit } from './commands/audit.js';
 import { registerBuck } from './commands/buck.js';
 import { registerConfig } from './commands/config.js';
 import { registerDeck } from './commands/deck.js';
+import { registerDoctor } from './commands/doctor.js';
 import { registerGrade } from './commands/grade.js';
 import { registerKiln } from './commands/kiln.js';
 import { registerPeriod } from './commands/period.js';
@@ -63,6 +64,7 @@ export function buildProgram(context) {
   registerAudit(program, context);
   registerTally(program, context);
   registerConfig(program, context);
+  registerDoctor(program, context);
   return program;
 }
 

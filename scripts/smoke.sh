@@ -97,4 +97,7 @@ if [ "$CODE" -ne 4 ]; then
 fi
 echo "smoke: missing file exit code ok"
 
+OUT="$($CLI doctor)"
+expect_contains "$OUT" "nothing to report" "doctor"
+
 echo "smoke: all good"
