@@ -71,6 +71,7 @@ export function acquire(path, options = {}) {
     throw new LockError(`the book is locked by ${existing.owner ?? 'somebody'}`, {
       path,
       details: existing,
+      hint: `wait, or delete ${path} if that process is gone`,
     });
   }
   if (existing) {

@@ -7,7 +7,11 @@ import {
   ValidationError,
   formatError,
   isBucklineError,
+  withHint,
 } from '../src/errors.js';
+import { getRule } from '../src/scale/rules/index.js';
+import { lookupSpecies } from '../src/model/species.js';
+import { lumberSpec } from '../src/grade/lumber/spec.js';
 
 describe('BucklineError', () => {
   it('carries a default code', () => {
@@ -22,6 +26,7 @@ describe('BucklineError', () => {
       message: 'nope',
       path: 'log.axes[0]',
       details: { seen: -1 },
+      hint: null,
     });
   });
 
@@ -71,5 +76,75 @@ describe('formatError', () => {
 
   it('falls back for something that is not an error at all', () => {
     expect(formatError('plain')).toBe('plain');
+  });
+});
+
+describe('hints', () => {
+  it('carries a hint when one is given', () => {
+    expect(new ScaleError('no rule', { hint: 'buckline rules' }).hint).toBe('buckline rules');
+  });
+
+  it('carries none by default', () => {
+    expect(new ScaleError('no rule').hint).toBeNull();
+  });
+
+  it('prints the hint on its own line', () => {
+    const error = new ScaleError('no rule', { path: 'rule', hint: 'buckline rules' });
+    expect(formatError(error)).toBe('SCALE at rule: no rule\n  try: buckline rules');
+  });
+
+  it('prints one line when there is no hint', () => {
+    expect(formatError(new ScaleError('no rule')).split('\n')).toHaveLength(1);
+  });
+
+  it('carries the hint into the json shape', () => {
+    expect(new ScaleError('a', { hint: 'b' }).toJSON().hint).toBe('b');
+  });
+
+  it('adds a hint to an error that has none', () => {
+    const error = withHint(new ScaleError('a'), 'do this');
+    expect(error.hint).toBe('do this');
+  });
+
+  it('leaves a hint that is already there alone', () => {
+    const error = withHint(new ScaleError('a', { hint: 'first' }), 'second');
+    expect(error.hint).toBe('first');
+  });
+
+  it('leaves a foreign error alone', () => {
+    const error = withHint(new TypeError('a'), 'do this');
+    expect(error.hint).toBeUndefined();
+  });
+});
+
+describe('the hints the yard actually sees', () => {
+  it('points at the rules command when a rule is unknown', () => {
+    let caught;
+    try {
+      getRule('cubic');
+    } catch (error) {
+      caught = error;
+    }
+    expect(formatError(caught)).toContain('try: buckline rules');
+  });
+
+  it('names some of the species when one is not on the register', () => {
+    let caught;
+    try {
+      lookupSpecies('teak');
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught.hint).toContain('the yard buys');
+  });
+
+  it('names the grades we grade when one is unknown', () => {
+    let caught;
+    try {
+      lumberSpec('F5');
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught.hint).toContain('FAS');
   });
 });

@@ -151,7 +151,10 @@ function alternatives(maxCuttings, unitsPerSm, bonusUnitsPerSm) {
 export function lumberSpec(grade) {
   const spec = SPECS[grade];
   if (!spec) {
-    throw new GradeError(`no lumber grade called ${grade}`, { path: 'grade' });
+    throw new GradeError(`no lumber grade called ${grade}`, {
+      path: 'grade',
+      hint: `we grade ${LUMBER_GRADES.join(', ')}`,
+    });
   }
   return spec;
 }

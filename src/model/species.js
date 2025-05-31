@@ -188,7 +188,10 @@ export function normalizeSpecies(name) {
 export function lookupSpecies(name) {
   const key = normalizeSpecies(name);
   if (!Object.prototype.hasOwnProperty.call(REGISTER, key)) {
-    throw new ContractError(`no species register entry for ${key}`, { path: 'species' });
+    throw new ContractError(`no species register entry for ${key}`, {
+      path: 'species',
+      hint: `the yard buys ${speciesKeys().slice(0, 4).join(', ')} and nine more`,
+    });
   }
   return { key, ...REGISTER[key] };
 }

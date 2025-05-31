@@ -68,7 +68,11 @@ export function resolvePath(context, path) {
 export function readData(context, path) {
   const full = resolvePath(context, path);
   if (!existsSync(full)) {
-    throw new IoError(`no file at ${full}`, { path: full, details: { code: EXIT.notFound } });
+    throw new IoError(`no file at ${full}`, {
+      path: full,
+      details: { code: EXIT.notFound },
+      hint: 'check the path, or run the command from the directory the file is in',
+    });
   }
   const text = readFileSync(full, 'utf8');
   const extension = extname(full).toLowerCase();
@@ -100,6 +104,7 @@ export function readData(context, path) {
   }
   throw new IoError(`do not know how to read a ${extension || 'file with no extension'}`, {
     path: full,
+    hint: 'name the file .json, .jsonl or .csv',
   });
 }
 

@@ -14,6 +14,7 @@ export class BucklineError extends Error {
     this.code = options.code ?? 'BUCKLINE';
     this.path = options.path ?? null;
     this.details = options.details ?? null;
+    this.hint = options.hint ?? null;
     if (options.cause !== undefined) {
       this.cause = options.cause;
     }
@@ -27,6 +28,7 @@ export class BucklineError extends Error {
       message: this.message,
       path: this.path,
       details: this.details,
+      hint: this.hint,
     };
   }
 }
@@ -73,14 +75,30 @@ export function isBucklineError(value) {
   return value instanceof BucklineError;
 }
 
-/** Renders any thrown value as a single line for the command line. */
+/**
+ * Renders any thrown value as one or two lines for the command line.
+ *
+ * The hint is on its own line and it says what to do rather than what went
+ * wrong. Putting it on the same line made the message too long to read at the
+ * end of a long command, and putting it behind a verbose flag meant nobody
+ * ever saw it.
+ */
 export function formatError(value) {
   if (isBucklineError(value)) {
     const where = value.path ? ` at ${value.path}` : '';
-    return `${value.code}${where}: ${value.message}`;
+    const head = `${value.code}${where}: ${value.message}`;
+    return value.hint ? `${head}\n  try: ${value.hint}` : head;
   }
   if (value instanceof Error) {
     return `${value.name}: ${value.message}`;
   }
   return String(value);
+}
+
+/** Adds a hint to an error that has none, and leaves one that has alone. */
+export function withHint(error, hint) {
+  if (isBucklineError(error) && !error.hint) {
+    error.hint = hint;
+  }
+  return error;
 }

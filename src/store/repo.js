@@ -122,7 +122,10 @@ export class Yard {
   getTract(id) {
     const tract = this.tracts.state.get(id);
     if (!tract) {
-      throw new RepoError(`no tract ${id} in the yard book`, { path: 'tractId' });
+      throw new RepoError(`no tract ${id} in the yard book`, {
+        path: 'tractId',
+        hint: 'buckline yard tract saves one before a load can be received against it',
+      });
     }
     return tract;
   }
@@ -148,7 +151,10 @@ export class Yard {
   getLoad(id) {
     const load = this.loads.state.get(id);
     if (!load) {
-      throw new RepoError(`no load ${id} in the yard book`, { path: 'loadId' });
+      throw new RepoError(`no load ${id} in the yard book`, {
+        path: 'loadId',
+        hint: 'buckline yard receive records a load arriving',
+      });
     }
     return load;
   }

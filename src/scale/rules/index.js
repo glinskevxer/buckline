@@ -35,6 +35,7 @@ export function getRule(ruleId) {
   if (!rule) {
     throw new ContractError(`unknown log rule ${key}, we scale ${ruleIds().join(', ')}`, {
       path: 'rule',
+      hint: `buckline rules --rule ${ruleIds()[0]}`,
     });
   }
   return rule;

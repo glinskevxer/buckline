@@ -76,7 +76,10 @@ export function zoneForMiles(card, miles) {
 export function baseCharge(card, zoneId, load) {
   const zone = card.byZone.get(zoneId);
   if (!zone) {
-    throw new SettleError(`no zone ${zoneId} on ${card.carrier}'s card`, { path: 'zone' });
+    throw new SettleError(`no zone ${zoneId} on ${card.carrier}'s card`, {
+      path: 'zone',
+      hint: `the card carries ${[...card.byZone.keys()].join(', ')}`,
+    });
   }
 
   switch (zone.basis) {

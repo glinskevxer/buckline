@@ -75,7 +75,10 @@ const SCHEDULES = {
 export function schedule(id) {
   const found = SCHEDULES[id];
   if (!found) {
-    throw new KilnError(`no kiln schedule called ${id}`, { path: 'schedule' });
+    throw new KilnError(`no kiln schedule called ${id}`, {
+      path: 'schedule',
+      hint: 'buckline kiln schedule names the one a package needs',
+    });
   }
   return found;
 }
