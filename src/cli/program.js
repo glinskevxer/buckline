@@ -30,6 +30,7 @@ import { registerReport } from './commands/report.js';
 import { registerRules } from './commands/rules.js';
 import { registerScale } from './commands/scale.js';
 import { registerSettle } from './commands/settle.js';
+import { registerSpecies } from './commands/species.js';
 import { registerTally } from './commands/tally.js';
 import { registerYard } from './commands/yard.js';
 
@@ -65,6 +66,7 @@ export function buildProgram(context) {
   registerTally(program, context);
   registerConfig(program, context);
   registerDoctor(program, context);
+  registerSpecies(program, context);
   return program;
 }
 
