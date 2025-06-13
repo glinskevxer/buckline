@@ -13,6 +13,7 @@
  */
 
 import { BucklineError } from '../errors.js';
+import { checklist } from '../checklist.js';
 import { round2, round4 } from '../num.js';
 import { ruleIds } from '../scale/rules/index.js';
 import { date, list, string, validateAs } from '../valid/check.js';
@@ -88,25 +89,22 @@ export function makeScaler(spec) {
  * lapsed and who was never endorsed on the rule needs to hear both.
  */
 export function admissible(scaler, ruleId, onDate) {
-  const reasons = [];
-  if (scaler.state === 'withdrawn') {
-    reasons.push(`${scaler.name} no longer holds a certificate`);
-  }
-  if (scaler.state === 'suspended') {
-    reasons.push(`${scaler.name} is suspended: ${scaler.suspendedReason}`);
-  }
-  if (!scaler.endorsements.includes(ruleId)) {
-    reasons.push(
+  return checklist()
+    .require(scaler.state !== 'withdrawn', `${scaler.name} no longer holds a certificate`)
+    .require(scaler.state !== 'suspended', `${scaler.name} is suspended: ${scaler.suspendedReason}`)
+    .require(
+      scaler.endorsements.includes(ruleId),
       `${scaler.name} is endorsed on ${scaler.endorsements.join(', ')}, not on ${ruleId}`
-    );
-  }
-  if (onDate < scaler.certifiedFrom) {
-    reasons.push(`${scaler.name} was not certified until ${scaler.certifiedFrom}`);
-  }
-  if (onDate > scaler.certifiedTo) {
-    reasons.push(`${scaler.name}'s certificate lapsed on ${scaler.certifiedTo}`);
-  }
-  return { admissible: reasons.length === 0, reasons };
+    )
+    .require(
+      onDate >= scaler.certifiedFrom,
+      `${scaler.name} was not certified until ${scaler.certifiedFrom}`
+    )
+    .require(
+      onDate <= scaler.certifiedTo,
+      `${scaler.name}'s certificate lapsed on ${scaler.certifiedTo}`
+    )
+    .verdict('admissible');
 }
 
 /** Days until a certificate lapses, negative once it has. */

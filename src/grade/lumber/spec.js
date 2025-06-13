@@ -27,6 +27,7 @@
  */
 
 import { GradeError } from '../../errors.js';
+import { checklist } from '../../checklist.js';
 
 /** Grades best first. The order is the order a board is offered in. */
 export const LUMBER_GRADES = ['FAS', 'F1F', 'SEL', '1C', '2AC', '3AC'];
@@ -187,26 +188,22 @@ export function cuttingCounts(grade, widthIn, lengthFt) {
 /** Whether the board's outside dimensions let it be offered at a grade. */
 export function dimensionsAllow(grade, board) {
   const spec = lumberSpec(grade);
-  const reasons = [];
-  if (board.widthIn < spec.minWidthIn) {
-    reasons.push(
+  return checklist()
+    .require(
+      board.widthIn >= spec.minWidthIn,
       `${board.widthIn} inches is under the ${spec.minWidthIn} inch minimum for ${grade}`
-    );
-  }
-  if (board.lengthFt < spec.minLengthFt) {
-    reasons.push(
+    )
+    .require(
+      board.lengthFt >= spec.minLengthFt,
       `${board.lengthFt} feet is under the ${spec.minLengthFt} foot minimum for ${grade}`
-    );
-  }
-  if (board.lengthFt > spec.maxLengthFt) {
-    reasons.push(
+    )
+    .require(
+      board.lengthFt <= spec.maxLengthFt,
       `${board.lengthFt} feet is over the ${spec.maxLengthFt} foot maximum for ${grade}`
-    );
-  }
-  if (board.surfaceMeasure < spec.minSurfaceMeasure) {
-    reasons.push(
+    )
+    .require(
+      board.surfaceMeasure >= spec.minSurfaceMeasure,
       `surface measure ${board.surfaceMeasure} is under the ${spec.minSurfaceMeasure} minimum for ${grade}`
-    );
-  }
-  return { allowed: reasons.length === 0, reasons };
+    )
+    .verdict('allowed');
 }

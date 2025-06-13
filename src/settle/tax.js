@@ -15,6 +15,7 @@
 
 import { round2, round4 } from '../num.js';
 import { SettleError } from './stumpage.js';
+import { checklist } from '../checklist.js';
 
 /** What a tax is worked out on. */
 export const TAX_BASES = ['stumpage value', 'volume', 'assessed value'];
@@ -66,17 +67,17 @@ export function makeJurisdiction(spec) {
  * every threshold that jurisdiction set.
  */
 export function exemption(jurisdiction, cut) {
-  const reasons = [];
+  const list = checklist();
   if (jurisdiction.exemptBelowValue > 0 && cut.stumpageValue < jurisdiction.exemptBelowValue) {
-    reasons.push(`under the ${jurisdiction.exemptBelowValue} value threshold`);
+    list.add(`under the ${jurisdiction.exemptBelowValue} value threshold`);
   }
   if (jurisdiction.exemptBelowMbf > 0 && cut.netMbf < jurisdiction.exemptBelowMbf) {
-    reasons.push(`under the ${jurisdiction.exemptBelowMbf} thousand board foot threshold`);
+    list.add(`under the ${jurisdiction.exemptBelowMbf} thousand board foot threshold`);
   }
   if (!jurisdiction.appliesToPulpwood && cut.product === 'pulpwood') {
-    reasons.push('pulpwood is not taxed here');
+    list.add('pulpwood is not taxed here');
   }
-  return { exempt: reasons.length > 0, reasons };
+  return { exempt: !list.ok, reasons: list.reasons };
 }
 
 /** The tax on one cut. */
