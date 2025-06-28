@@ -1,0 +1,16 @@
+{
+  "id": "PL-2025-06",
+  "effectiveFrom": "2025-06-01",
+  "effectiveTo": "2025-08-31",
+  "market": "green",
+  "rows": [
+    { "species": "red oak", "grade": "F1", "perMbf": 640 },
+    { "species": "white oak", "grade": "F1", "perMbf": 720 }
+  ],
+  "base": {
+    "red oak": 1400,
+    "white oak": 1500,
+    "hard maple": 1600,
+    "yellow poplar": 700
+  }
+}

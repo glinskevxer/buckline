@@ -1,0 +1,16 @@
+{
+  "id": "S-1",
+  "species": "red oak",
+  "stumpHeightFt": 0.5,
+  "profile": [
+    { "atFt": 0, "diameterIn": 26 },
+    { "atFt": 4, "diameterIn": 22 },
+    { "atFt": 20, "diameterIn": 18 },
+    { "atFt": 40, "diameterIn": 12 },
+    { "atFt": 52, "diameterIn": 6 }
+  ],
+  "defects": [
+    { "type": "catface", "atFt": 24, "lengthFt": 2 },
+    { "type": "crook", "atFt": 34, "lengthFt": 1 }
+  ]
+}

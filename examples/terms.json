@@ -1,0 +1,32 @@
+{
+  "loadId": "LD-19",
+  "scaledOn": "2025-06-25",
+  "marketIndex": 118,
+  "haulZone": "zone 2",
+  "landowner": "E. Whitlock",
+  "agreement": {
+    "id": "A-1",
+    "tractId": "T-7",
+    "landowner": "E. Whitlock",
+    "rates": [
+      { "species": "red oak", "grade": "F1", "perMbf": 620 },
+      { "species": "red oak", "perMbf": 380 },
+      { "species": "white oak", "perMbf": 430 },
+      { "species": "yellow poplar", "perMbf": 210 }
+    ],
+    "slidingScale": { "baseIndex": 100, "triggerIndex": 110, "share": 0.5 },
+    "minimumVolumeMbf": 30,
+    "advance": 5000,
+    "advanceRecoveryShare": 0.2
+  },
+  "split": {
+    "kind": "residual",
+    "cutAndHaulPerMbf": 190,
+    "bears": { "insurance": "logger", "haul": "logger" }
+  },
+  "deductions": [
+    { "name": "severance tax", "class": "statutory", "basis": "gross", "rate": 0.0285 },
+    { "name": "insurance", "class": "contractual", "basis": "gross", "rate": 0.02 }
+  ],
+  "outstanding": { "advance": 5000 }
+}

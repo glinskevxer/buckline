@@ -1,0 +1,16 @@
+{
+  "id": "T-7",
+  "name": "Culpeper 40",
+  "owner": "E. Whitlock",
+  "county": "Culpeper",
+  "acres": 41.5,
+  "openedOn": "2025-02-01",
+  "closedOn": "2025-09-30",
+  "contract": {
+    "rule": "doyle",
+    "sweepAllowance": "quarter",
+    "cullShare": 0.5,
+    "trimPolicy": "hardwood",
+    "overrides": [{ "defect": "heart rot", "method": "length" }]
+  }
+}

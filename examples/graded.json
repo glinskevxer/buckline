@@ -1,0 +1,6 @@
+[
+  { "species": "red oak", "grade": "F1", "netBoardFeet": 3200 },
+  { "species": "red oak", "grade": "F3", "netBoardFeet": 1600 },
+  { "species": "white oak", "grade": "F2", "netBoardFeet": 2100 },
+  { "species": "yellow poplar", "grade": "F2", "netBoardFeet": 900 }
+]

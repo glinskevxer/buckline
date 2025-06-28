@@ -1,0 +1,30 @@
+[
+  {
+    "unitId": "U-0001",
+    "species": "yellow poplar",
+    "quarters": 4,
+    "boardFeet": 18000,
+    "greenMoisturePct": 62
+  },
+  {
+    "unitId": "U-0002",
+    "species": "yellow poplar",
+    "quarters": 4,
+    "boardFeet": 16000,
+    "greenMoisturePct": 58
+  },
+  {
+    "unitId": "U-0003",
+    "species": "white oak",
+    "quarters": 4,
+    "boardFeet": 9000,
+    "greenMoisturePct": 70
+  },
+  {
+    "unitId": "U-0004",
+    "species": "loblolly pine",
+    "quarters": 4,
+    "boardFeet": 30000,
+    "greenMoisturePct": 95
+  }
+]
