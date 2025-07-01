@@ -20,6 +20,7 @@ import { EXIT, exitCodeFor, makeContext } from './io.js';
 import { loadConfig } from './config.js';
 import { registerAudit } from './commands/audit.js';
 import { registerBuck } from './commands/buck.js';
+import { registerCommands } from './commands/commands.js';
 import { registerConfig } from './commands/config.js';
 import { registerDeck } from './commands/deck.js';
 import { registerDoctor } from './commands/doctor.js';
@@ -67,6 +68,7 @@ export function buildProgram(context) {
   registerConfig(program, context);
   registerDoctor(program, context);
   registerSpecies(program, context);
+  registerCommands(program, context);
   return program;
 }
 
