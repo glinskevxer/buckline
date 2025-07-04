@@ -66,7 +66,7 @@ describe('the public surface', () => {
   });
 
   it('exports a lot of names', () => {
-    expect(Object.keys(surface).length).toBeGreaterThan(100);
+    expect(Object.keys(surface).length).toBeGreaterThan(200);
   });
 });
 

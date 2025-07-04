@@ -117,4 +117,25 @@ export { makeLimits, runRules, capability } from './analysis/control.js';
 export { openYard, Yard } from './store/repo.js';
 export { openJournal } from './store/journal.js';
 
+export { makeScaler, admissible, renewalsDue, reviewChecks } from './model/scaler.js';
+export { cubicScale, smalian, huber, measuredRecovery } from './scale/cubic.js';
+export { veneerValue, yieldByGrade, coreLossShare } from './grade/log/veneer-yield.js';
+export { residueBalance, residueValue, chipOrBoard } from './mill/residue.js';
+export { equaliseStep, conditionStep, readProngs, finishPlan } from './kiln/conditioning.js';
+export { loadShipment, bindingLimit, footageAtWeightLimit } from './tally/shipment.js';
+export { makeSchedule, invoicePrice, rebateOwed, periodPosition } from './price/discount.js';
+export { makeJurisdiction, taxOn, compareJurisdictions, asDeduction } from './settle/tax.js';
+export { selfBilledInvoice, duplicateLoads, overdue } from './settle/invoice.js';
+export { makeTrip, tripCost, backhaulValue, rankTrips } from './haul/route.js';
+export { balances, trace, activity } from './inventory/movement.js';
+export { against, movement as benchmarkMovement, rank } from './analysis/benchmark.js';
+export { decompose, biggestMovers, summarise } from './analysis/variance.js';
+export { periodStatementDocument, accountDocument } from './report/period-statement.js';
+export { document as layoutDocument, section } from './report/layout.js';
+export { selfCheck } from './selfcheck.js';
+export { checklist } from './checklist.js';
+export { find as findEntries, history, byActor, byDay } from './store/query.js';
+export { migrate, CURRENT_VERSION as JOURNAL_VERSION } from './store/migrate.js';
+export { loadConfig, resolveOptions } from './cli/config.js';
+
 export { run as runCommandLine, VERSION } from './cli/program.js';
