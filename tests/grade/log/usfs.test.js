@@ -160,3 +160,25 @@ describe('factoryGrade', () => {
     expect(result.attempts.map((a) => a.grade)).toEqual(FACTORY_GRADES);
   });
 });
+
+describe('the reasons a grade refuses', () => {
+  it('never stops at the first one', () => {
+    const result = meetsGrade(log(12, 8, [], { position: 'upper' }), 'F1', { cullShare: 0.9 });
+    expect(result.reasons.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('names each of them once', () => {
+    const result = meetsGrade(log(12, 8, [], { position: 'upper' }), 'F1');
+    expect(new Set(result.reasons).size).toBe(result.reasons.length);
+  });
+
+  it('says nothing at all when the log makes the grade', () => {
+    expect(meetsGrade(log(17.4, 12), 'F1').reasons).toEqual([]);
+  });
+
+  it('still reports the requirements when it refused on the cutting standard', () => {
+    const result = meetsGrade(log(12, 12), 'F1');
+    expect(result.requirements.minCuttingFt).toBeNull();
+    expect(result.faces).toEqual([]);
+  });
+});

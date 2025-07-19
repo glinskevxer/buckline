@@ -143,3 +143,28 @@ describe('tieGrade', () => {
     expect(TIE_SIZES[0].name).toBe('grade 5 tie');
   });
 });
+
+describe('the reasons veneer refuses', () => {
+  it('never stops at the first one', () => {
+    const result = veneerGrade(
+      log('yellow poplar', 12, 6, [{ type: 'ring shake' }, { type: 'sweep', depthIn: 4 }])
+    );
+    expect(result.reasons.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('says nothing when the log makes it', () => {
+    expect(veneerGrade(log('black walnut', 22, 12)).reasons).toEqual([]);
+  });
+
+  it('reads the sweep limit only when there is sweep', () => {
+    const result = veneerGrade(log('black walnut', 22, 12));
+    expect(result.reasons.join(' ')).not.toContain('sweep');
+  });
+
+  it('lists every excluded defect the log carries', () => {
+    const result = veneerGrade(
+      log('black walnut', 22, 12, [{ type: 'ring shake' }, { type: 'metal in log' }])
+    );
+    expect(result.reasons.filter((line) => line.includes('veneer market'))).toHaveLength(2);
+  });
+});

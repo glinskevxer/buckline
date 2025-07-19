@@ -24,6 +24,7 @@
  */
 
 import { GradeError } from '../../errors.js';
+import { checklist } from '../../checklist.js';
 import { passingFaceCount, readFaces } from './faces.js';
 
 /** The three factory grades, best first. */
@@ -112,41 +113,48 @@ export function requirementsFor(log, grade) {
 export function meetsGrade(log, grade, options = {}) {
   const { cullShare = 0 } = options;
   const spec = gradeSpec(grade);
-  const reasons = [];
-
-  if (!spec.positions.includes(log.position)) {
-    reasons.push(`${grade} takes ${spec.positions.join(' or ')} logs, this is ${log.position}`);
-  }
-  if (log.scalingDiameterIn < spec.minDiameterIn) {
-    reasons.push(
+  const list = checklist()
+    .require(
+      spec.positions.includes(log.position),
+      `${grade} takes ${spec.positions.join(' or ')} logs, this is ${log.position}`
+    )
+    .require(
+      log.scalingDiameterIn >= spec.minDiameterIn,
       `scaling diameter ${log.scalingDiameterIn} is under the ${spec.minDiameterIn} inch floor`
-    );
-  }
-  if (log.nominalLengthFt < spec.minLengthFt) {
-    reasons.push(`length ${log.nominalLengthFt} is under the ${spec.minLengthFt} foot floor`);
-  }
-  if (cullShare > spec.maxCullShare + 1e-9) {
-    reasons.push(
+    )
+    .require(
+      log.nominalLengthFt >= spec.minLengthFt,
+      `length ${log.nominalLengthFt} is under the ${spec.minLengthFt} foot floor`
+    )
+    .require(
+      cullShare <= spec.maxCullShare + 1e-9,
       `cull of ${Math.round(cullShare * 100)} percent is over the ${Math.round(spec.maxCullShare * 100)} percent limit`
     );
-  }
 
   const requirements = requirementsFor(log, grade);
   if (requirements.minCuttingFt === null) {
-    reasons.push(`no cutting standard for a ${log.scalingDiameterIn} inch log at ${grade}`);
-    return { grade, meets: false, reasons, requirements, faces: [], passingFaces: 0 };
+    list.add(`no cutting standard for a ${log.scalingDiameterIn} inch log at ${grade}`);
+    return {
+      grade,
+      meets: false,
+      reasons: list.reasons,
+      requirements,
+      faces: [],
+      passingFaces: 0,
+    };
   }
 
   const faces = readFaces(log, requirements, options);
   const passing = passingFaceCount(log, requirements, options);
-  if (passing < spec.facesRequired) {
-    reasons.push(`${passing} clear faces of the ${spec.facesRequired} ${grade} needs`);
-  }
+  list.require(
+    passing >= spec.facesRequired,
+    `${passing} clear faces of the ${spec.facesRequired} ${grade} needs`
+  );
 
   return {
     grade,
-    meets: reasons.length === 0,
-    reasons,
+    meets: list.ok,
+    reasons: list.reasons,
     requirements,
     faces,
     passingFaces: passing,

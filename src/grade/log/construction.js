@@ -17,6 +17,7 @@
  */
 
 import { GradeError } from '../../errors.js';
+import { checklist } from '../../checklist.js';
 import { lookupSpecies } from '../../model/species.js';
 import { defectType } from '../../scale/defect/types.js';
 import { clearCuttings, FACE_COUNT, gradingZone } from './faces.js';
@@ -44,32 +45,28 @@ const VENEER = {
  * Whether the log will sell as veneer, and why not if it will not.
  */
 export function veneerGrade(log, options = {}) {
-  const reasons = [];
   const species = lookupSpecies(log.species);
-
-  if (!species.veneerCandidate) {
-    reasons.push(`${species.key} is not a veneer species`);
-  }
-  if (log.scalingDiameterIn < VENEER.minDiameterIn) {
-    reasons.push(
+  const list = checklist()
+    .require(species.veneerCandidate, `${species.key} is not a veneer species`)
+    .require(
+      log.scalingDiameterIn >= VENEER.minDiameterIn,
       `scaling diameter ${log.scalingDiameterIn} is under the ${VENEER.minDiameterIn} inch veneer floor`
-    );
-  }
-  if (log.nominalLengthFt < VENEER.minLengthFt) {
-    reasons.push(
+    )
+    .require(
+      log.nominalLengthFt >= VENEER.minLengthFt,
       `length ${log.nominalLengthFt} is under the ${VENEER.minLengthFt} foot veneer floor`
     );
-  }
 
   for (const defect of log.defects ?? []) {
     if (VENEER_EXCLUSIONS.includes(defect.type)) {
-      reasons.push(`${defect.type} puts the log out of the veneer market`);
+      list.add(`${defect.type} puts the log out of the veneer market`);
     }
   }
 
   const sweep = (log.defects ?? []).find((defect) => defect.type === 'sweep');
-  if (sweep && (sweep.depthIn ?? 0) > VENEER.maxSweepIn) {
-    reasons.push(
+  if (sweep) {
+    list.require(
+      (sweep.depthIn ?? 0) <= VENEER.maxSweepIn,
       `sweep of ${sweep.depthIn} inches is over the ${VENEER.maxSweepIn} inch veneer limit`
     );
   }
@@ -81,17 +78,12 @@ export function veneerGrade(log, options = {}) {
     const whole = cuttings.length === 1 && Math.abs(cuttings[0].lengthFt - zone.lengthFt) < 1e-6;
     if (whole) clearFaces.push(index);
   }
-  if (clearFaces.length < VENEER.facesRequired) {
-    reasons.push(
-      `${clearFaces.length} entirely clear faces of the ${VENEER.facesRequired} veneer needs`
-    );
-  }
+  list.require(
+    clearFaces.length >= VENEER.facesRequired,
+    `${clearFaces.length} entirely clear faces of the ${VENEER.facesRequired} veneer needs`
+  );
 
-  return {
-    grade: reasons.length === 0 ? 'veneer' : null,
-    clearFaces,
-    reasons,
-  };
+  return { grade: list.ok ? 'veneer' : null, clearFaces, reasons: list.reasons };
 }
 
 /**
