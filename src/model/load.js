@@ -11,6 +11,7 @@
 import { ContractError } from '../errors.js';
 import { makeLog } from './log.js';
 import { number, string, validate } from '../valid/check.js';
+import { checkLoad } from '../limits.js';
 
 const loadSchema = {
   id: string(),
@@ -29,6 +30,7 @@ const loadSchema = {
  * tract's contract sets.
  */
 export function makeLoad(raw, measurement = {}) {
+  checkLoad(raw);
   const checked = validate(raw, loadSchema, { label: 'load' });
   const rawLogs = Array.isArray(raw.logs) ? raw.logs : [];
   if (rawLogs.length === 0) {

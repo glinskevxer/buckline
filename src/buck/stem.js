@@ -15,6 +15,7 @@
 
 import { BucklineError } from '../errors.js';
 import { round3 } from '../num.js';
+import { checkStem } from '../limits.js';
 
 export class BuckError extends BucklineError {
   constructor(message, options = {}) {
@@ -35,6 +36,7 @@ export function makeStem(spec) {
   if (!id) {
     throw new BuckError('a stem needs an identifier', { path: 'id' });
   }
+  checkStem(spec);
   if (!Array.isArray(profile) || profile.length < 2) {
     throw new BuckError('a stem profile needs at least two breakpoints', { path: 'profile' });
   }

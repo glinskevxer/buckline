@@ -17,6 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, extname, isAbsolute, resolve } from 'node:path';
 import { BucklineError } from '../errors.js';
 import { parseCsv } from './render/csv.js';
+import { checkFile } from '../limits.js';
 
 export class IoError extends BucklineError {
   constructor(message, options = {}) {
@@ -78,12 +79,13 @@ export function readData(context, path) {
   const extension = extname(full).toLowerCase();
 
   if (extension === '.csv') {
-    return parseCsv(text);
+    return checkFile(parseCsv(text));
   }
   if (extension === '.json') {
     try {
-      return JSON.parse(text);
+      return checkFile(JSON.parse(text));
     } catch (error) {
+      if (error.code === 'LIMIT') throw error;
       throw new IoError(`${full} is not readable json`, { path: full, cause: error });
     }
   }

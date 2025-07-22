@@ -15,6 +15,7 @@
 import { boardFeet, quarters } from '../units.js';
 import { round2, round3 } from '../num.js';
 import { list, number, object, string, validate } from '../valid/check.js';
+import { checkBoard } from '../limits.js';
 
 const defectSchema = object({
   type: string(),
@@ -60,6 +61,7 @@ export function cuttingUnits(widthIn, lengthFt) {
 
 /** Reads a raw tally line into a board record. */
 export function makeBoard(raw) {
+  checkBoard(raw);
   const checked = validate(raw, boardSchema, { label: 'board' });
   const wide = checked.wideWidthIn ?? checked.widthIn;
   if (wide < checked.widthIn) {

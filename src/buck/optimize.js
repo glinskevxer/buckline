@@ -23,6 +23,7 @@
  */
 
 import { round2, round3 } from '../num.js';
+import { checkPositions } from '../limits.js';
 import { BuckError } from './stem.js';
 import { totalValue, valuedCandidates } from './candidates.js';
 
@@ -41,6 +42,7 @@ export function buckStem(stem, positions, ruleId, priceList, options = {}) {
     throw new BuckError('a stem has to be allowed at least one log', { path: 'maxLogs' });
   }
 
+  checkPositions(positions);
   const grid = valuedCandidates(stem, positions, ruleId, priceList, options);
   const n = positions.length;
   const cap = Math.min(maxLogs, n - 1);
