@@ -62,6 +62,7 @@ export function section(spec = {}) {
  */
 export function document(sections) {
   return sections
+    .filter((entry) => entry !== null && entry !== undefined && entry !== '')
     .map((entry) => (typeof entry === 'string' ? entry : section(entry)))
     .filter((entry) => entry !== null && entry !== undefined && entry !== '')
     .join('\n\n');
