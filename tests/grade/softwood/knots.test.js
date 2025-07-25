@@ -163,3 +163,48 @@ describe('readClusters', () => {
     expect(readClusters(reversed, 'SS', 3.5)).toEqual(readClusters(near, 'SS', 3.5));
   });
 });
+
+describe('narrow face knots', () => {
+  it('are read on their own limit at every grade', () => {
+    for (const grade of STRUCTURAL_GRADES) {
+      const allowed = allowedKnotIn(grade, 'narrow face', 3.5);
+      expect(allowed).toBeGreaterThan(0);
+      expect(allowed).toBeLessThan(3.5);
+    }
+  });
+
+  it('allow more as the grade drops', () => {
+    const narrow = STRUCTURAL_GRADES.map((grade) => allowedKnotIn(grade, 'narrow face', 3.5));
+    for (let i = 1; i < narrow.length; i += 1) {
+      expect(narrow[i]).toBeGreaterThanOrEqual(narrow[i - 1]);
+    }
+  });
+
+  it('sit between the edge and the centreline at the top grade', () => {
+    expect(allowedKnotIn('SS', 'narrow face', 3.5)).toBeGreaterThanOrEqual(
+      allowedKnotIn('SS', 'edge', 3.5)
+    );
+    expect(allowedKnotIn('SS', 'narrow face', 3.5)).toBeLessThan(
+      allowedKnotIn('SS', 'centerline', 3.5)
+    );
+  });
+
+  it('are read through readKnot on a narrow face knot', () => {
+    const result = readKnot({ face: 'narrow', fromEdgeIn: 1, sizeIn: 0.5 }, 'SS', 3.5);
+    expect(result.zone).toBe('narrow face');
+    expect(result.passes).toBe(true);
+  });
+
+  it('fail a narrow face knot that is too big', () => {
+    expect(readKnot({ face: 'narrow', fromEdgeIn: 0.5, sizeIn: 2 }, 'SS', 3.5).passes).toBe(false);
+  });
+
+  it('cluster on the narrow face like any other zone', () => {
+    const clustered = [
+      { face: 'narrow', fromEdgeIn: 0.5, sizeIn: 0.7, atFt: 3 },
+      { face: 'narrow', fromEdgeIn: 0.5, sizeIn: 0.7, atFt: 3.2 },
+    ];
+    const clusters = readClusters(clustered, 'SS', 3.5);
+    expect(clusters[0].zone).toBe('narrow face');
+  });
+});

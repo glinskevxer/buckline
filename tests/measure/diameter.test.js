@@ -127,3 +127,35 @@ describe('registries', () => {
     }
   });
 });
+
+describe('the rounding rules nobody uses often', () => {
+  it('raises to the next inch when the contract says up', () => {
+    const result = scalingDiameter([16.1], {
+      convention: 'single',
+      rounding: 'up',
+      alreadyInsideBark: true,
+    });
+    expect(result.scalingDiameter).toBe(17);
+  });
+
+  it('leaves a whole inch alone when rounding up', () => {
+    const result = scalingDiameter([16], {
+      convention: 'single',
+      rounding: 'up',
+      alreadyInsideBark: true,
+    });
+    expect(result.scalingDiameter).toBe(16);
+  });
+
+  it('gives the seller the most of the four rules', () => {
+    const axes = [16.4];
+    const options = { convention: 'single', alreadyInsideBark: true };
+    const down = scalingDiameter(axes, { ...options, rounding: 'down' }).scalingDiameter;
+    const nearest = scalingDiameter(axes, { ...options, rounding: 'nearest' }).scalingDiameter;
+    const half = scalingDiameter(axes, { ...options, rounding: 'half' }).scalingDiameter;
+    const up = scalingDiameter(axes, { ...options, rounding: 'up' }).scalingDiameter;
+    expect(up).toBeGreaterThanOrEqual(half);
+    expect(half).toBeGreaterThanOrEqual(nearest);
+    expect(nearest).toBeGreaterThanOrEqual(down);
+  });
+});
