@@ -96,7 +96,15 @@ export class Projection {
 export function keyedProjection(name, kinds, options = {}) {
   // Not `valueOf`. That name is inherited from Object.prototype, so the
   // default never fires and every call lands on Object.prototype.valueOf.
-  const { keyOf = (entry) => entry.id, recordOf = (entry) => entry.record } = options;
+  //
+  // An entry that carries no separate record is its own record. Storing
+  // undefined instead looked harmless and was not: JSON drops an undefined
+  // value, so the key vanished the moment the projection went through a
+  // snapshot and came back with fewer entries than it went in with.
+  const {
+    keyOf = (entry) => entry.id,
+    recordOf = (entry) => (entry.record === undefined ? entry : entry.record),
+  } = options;
   const handlers = {};
   for (const kind of kinds) {
     handlers[kind] = (state, entry) => {
