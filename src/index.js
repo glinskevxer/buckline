@@ -130,6 +130,13 @@ export { makeTrip, tripCost, backhaulValue, rankTrips } from './haul/route.js';
 export { balances, trace, activity } from './inventory/movement.js';
 export { against, movement as benchmarkMovement, rank } from './analysis/benchmark.js';
 export { decompose, biggestMovers, summarise } from './analysis/variance.js';
+export {
+  progress,
+  cruiseError,
+  remaining,
+  valueRemaining,
+  loadsRemaining,
+} from './analysis/forecast.js';
 export { periodStatementDocument, accountDocument } from './report/period-statement.js';
 export { document as layoutDocument, section } from './report/layout.js';
 export { selfCheck } from './selfcheck.js';
