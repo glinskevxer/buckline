@@ -22,6 +22,10 @@ import { GRADE_MULTIPLIER } from './price/list.js';
 import { LUMBER_GRADES } from './grade/lumber/spec.js';
 import { FACTORY_GRADES } from './grade/log/usfs.js';
 import { schedule, scheduleFor, scheduleIds } from './kiln/schedule.js';
+import { KNOT_ZONES, STRUCTURAL_GRADES, allowedKnotIn } from './grade/softwood/knots.js';
+import { CUBIC_FEET_PER_GREEN_TON, STREAMS } from './mill/residue.js';
+import { MOVEMENTS } from './inventory/movement.js';
+import { STORAGE, degradeRates } from './inventory/degrade.js';
 
 /** Every rule module exports what the register expects of it. */
 export function checkRules() {
@@ -141,6 +145,61 @@ export function checkScheduleCoverage() {
   return { check: 'schedule coverage', looked, problems };
 }
 
+/** Every structural grade limit gets looser as the grade drops. */
+export function checkStructural() {
+  const problems = [];
+  for (const zone of KNOT_ZONES) {
+    let previous = 0;
+    for (const grade of STRUCTURAL_GRADES) {
+      const allowed = allowedKnotIn(grade, zone, 3.5);
+      if (allowed < previous) {
+        problems.push(`${grade} allows less on the ${zone} than the grade above it`);
+      }
+      previous = allowed;
+    }
+  }
+  for (const grade of STRUCTURAL_GRADES) {
+    if (allowedKnotIn(grade, 'edge', 3.5) > allowedKnotIn(grade, 'centerline', 3.5)) {
+      problems.push(`${grade} allows more at the edge than on the centerline`);
+    }
+  }
+  return {
+    check: 'structural knot limits',
+    looked: KNOT_ZONES.length * STRUCTURAL_GRADES.length,
+    problems,
+  };
+}
+
+/** Every residue stream has a weight and every movement has a direction. */
+export function checkYardTables() {
+  const problems = [];
+  for (const stream of STREAMS) {
+    if (!(CUBIC_FEET_PER_GREEN_TON[stream] > 0)) {
+      problems.push(`${stream} has no bulk density, so it cannot be weighed`);
+    }
+  }
+  for (const [kind, spec] of Object.entries(MOVEMENTS)) {
+    if (![-1, 0, 1].includes(spec.sign)) {
+      problems.push(`${kind} moves the balance by ${spec.sign}`);
+    }
+    if (spec.sign === 0 && spec.needs.length < 2) {
+      problems.push(`${kind} moves wood without saying where from and where to`);
+    }
+  }
+  for (const way of STORAGE) {
+    try {
+      degradeRates('red oak', { storage: way });
+    } catch (error) {
+      problems.push(`no degrade rates for wood held ${way}: ${error.message}`);
+    }
+  }
+  return {
+    check: 'yard tables',
+    looked: STREAMS.length + Object.keys(MOVEMENTS).length + STORAGE.length,
+    problems,
+  };
+}
+
 /** Everything, in order. */
 export function selfCheck() {
   const checks = [
@@ -150,6 +209,8 @@ export function selfCheck() {
     checkGrades(),
     checkSchedules(),
     checkScheduleCoverage(),
+    checkStructural(),
+    checkYardTables(),
   ];
   return {
     checks,

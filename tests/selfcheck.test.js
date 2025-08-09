@@ -6,6 +6,8 @@ import {
   checkScheduleCoverage,
   checkSchedules,
   checkSpecies,
+  checkStructural,
+  checkYardTables,
   selfCheck,
 } from '../src/selfcheck.js';
 
@@ -52,6 +54,8 @@ describe('selfCheck', () => {
       'grade prices',
       'kiln schedules',
       'schedule coverage',
+      'structural knot limits',
+      'yard tables',
     ]);
   });
 
@@ -68,5 +72,32 @@ describe('selfCheck', () => {
     for (const check of result.checks) {
       expect(check.looked).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('the newer tables check out too', () => {
+  it('the structural knot limits', () => {
+    const result = checkStructural();
+    expect(result.problems).toEqual([]);
+    expect(result.looked).toBeGreaterThan(10);
+  });
+
+  it('the yard tables', () => {
+    const result = checkYardTables();
+    expect(result.problems).toEqual([]);
+    expect(result.looked).toBeGreaterThan(10);
+  });
+
+  it('are part of the whole check', () => {
+    expect(selfCheck().checks.map((check) => check.check)).toContain('structural knot limits');
+    expect(selfCheck().checks.map((check) => check.check)).toContain('yard tables');
+  });
+
+  it('leave the whole check clean', () => {
+    expect(selfCheck().clean).toBe(true);
+  });
+
+  it('look at more than the earlier checks did on their own', () => {
+    expect(selfCheck().looked).toBeGreaterThan(100);
   });
 });
