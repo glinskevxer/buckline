@@ -13,12 +13,11 @@ import { cutCandidates, makeStem } from '../../buck/stem.js';
 import { withLengthClasses } from '../../buck/candidates.js';
 import { buckStem } from '../../buck/optimize.js';
 import { cuttingCard, expectedTally, valueLoss } from '../../buck/report.js';
-import { block, heading, money, table } from '../render/table.js';
-import { csv } from '../render/csv.js';
-import { json } from '../render/json.js';
+import { money } from '../render/table.js';
+import { document, title } from '../../report/layout.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
-import { requireFormat } from '../render/index.js';
+import { render, requireFormat } from '../render/index.js';
 
 /** Runs the buck command and returns the report text. */
 export function runBuck(options, context) {
@@ -33,50 +32,56 @@ export function runBuck(options, context) {
   const positions = withLengthClasses(stem, rough, { trimPolicy, topFt: rough.at(-1) });
   const result = buckStem(stem, positions, options.rule, list, { maxLogs, trimPolicy });
 
-  if (format === 'json') {
-    return json({ ...result, card: cuttingCard(result), tally: expectedTally(result) });
-  }
-  if (format === 'csv') {
-    return csv(expectedTally(result));
-  }
-
   const loss = valueLoss(stem, positions, options.rule, list, result);
-  return [
-    heading(`Cutting card for stem ${stem.id}`),
-    block({
-      species: stem.species,
-      rule: options.rule,
-      'price list': list.id,
-      'merchantable top': `${topDiameterIn} in`,
-      logs: result.logCount,
-    }),
-    '',
-    table(cuttingCard(result), [
-      { key: 'step', header: 'step' },
-      { key: 'action', header: 'do' },
-      { key: 'fromLastCutFt', header: 'from last cut' },
-      { key: 'atFt', header: 'height' },
-      { key: 'note', header: 'note' },
-    ]),
-    '',
-    heading('Expected off this stem', { rule: '-' }),
-    table(expectedTally(result), [
-      { key: 'logNumber', header: '#' },
-      { key: 'lengthFt', header: 'len' },
-      { key: 'diameterIn', header: 'dia' },
-      { key: 'grade', header: 'grade' },
-      { key: 'netBoardFeet', header: 'net bf' },
-      { key: 'value', header: 'value', format: (value) => money(value) },
-    ]),
-    '',
-    block({
-      value: money(result.value),
-      'net board feet': result.netBoardFeet,
-      'used length': `${result.usedLengthFt} ft`,
-      'left behind': `${result.wasteLengthFt} ft`,
-      'value per foot': money(loss.valuePerFoot),
-    }),
-  ].join('\n');
+
+  return render(format, {
+    json: { ...result, card: cuttingCard(result), tally: expectedTally(result) },
+    csv: expectedTally(result),
+    text: () =>
+      document([
+        title(`Cutting card for stem ${stem.id}`),
+        {
+          fields: {
+            species: stem.species,
+            rule: options.rule,
+            'price list': list.id,
+            'merchantable top': `${topDiameterIn} in`,
+            logs: result.logCount,
+          },
+        },
+        {
+          rows: cuttingCard(result),
+          columns: [
+            { key: 'step', header: 'step' },
+            { key: 'action', header: 'do' },
+            { key: 'fromLastCutFt', header: 'from last cut' },
+            { key: 'atFt', header: 'height' },
+            { key: 'note', header: 'note' },
+          ],
+        },
+        {
+          title: 'Expected off this stem',
+          rows: expectedTally(result),
+          columns: [
+            { key: 'logNumber', header: '#' },
+            { key: 'lengthFt', header: 'len' },
+            { key: 'diameterIn', header: 'dia' },
+            { key: 'grade', header: 'grade' },
+            { key: 'netBoardFeet', header: 'net bf' },
+            { key: 'value', header: 'value', format: (value) => money(value) },
+          ],
+        },
+        {
+          fields: {
+            value: money(result.value),
+            'net board feet': result.netBoardFeet,
+            'used length': `${result.usedLengthFt} ft`,
+            'left behind': `${result.wasteLengthFt} ft`,
+            'value per foot': money(loss.valuePerFoot),
+          },
+        },
+      ]),
+  });
 }
 
 /** Registers the command on a program. */

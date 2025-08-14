@@ -13,12 +13,10 @@ import { makeRateCard } from '../../settle/haul.js';
 import { auditStatement, settle } from '../../settle/statement.js';
 import { settlementDocument } from '../../report/documents.js';
 import { SettleError } from '../../settle/stumpage.js';
-import { csv } from '../render/csv.js';
-import { json } from '../render/json.js';
 import { readData } from '../io.js';
 import { optional, reportCommand, required } from '../command-kit.js';
 import { VERSION } from '../program.js';
-import { requireFormat } from '../render/index.js';
+import { render, requireFormat } from '../render/index.js';
 
 /** Runs the settle command and returns the statement text. */
 export function runSettle(options, context) {
@@ -55,9 +53,11 @@ export function runSettle(options, context) {
     });
   }
 
-  if (format === 'json') return json(statement);
-  if (format === 'csv') return csv(statement.lines);
-  return settlementDocument(statement, { producedBy: `buckline ${VERSION}` });
+  return render(format, {
+    json: statement,
+    csv: statement.lines,
+    text: () => settlementDocument(statement, { producedBy: `buckline ${VERSION}` }),
+  });
 }
 
 function normaliseLine(line) {
