@@ -11,7 +11,9 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { VERSION } from '../src/cli/program.js';
+import { RELEASE, VERSION } from '../src/version.js';
+import { CURRENT_VERSION } from '../src/store/migrate.js';
+import { SNAPSHOT_FORMAT } from '../src/store/snapshot.js';
 import * as surface from '../src/index.js';
 import { selfCheck } from '../src/selfcheck.js';
 
@@ -28,6 +30,24 @@ describe('the version', () => {
       encoding: 'utf8',
     }).trim();
     expect(reported).toBe(pkg.version);
+  });
+});
+
+describe('the release notes', () => {
+  it('claim the journal format the journal writes', () => {
+    expect(RELEASE.journalFormat).toBe(CURRENT_VERSION);
+  });
+
+  it('claim the snapshot format the snapshot writes', () => {
+    expect(RELEASE.snapshotFormat).toBe(SNAPSHOT_FORMAT);
+  });
+
+  it('name every exit code the command line uses', () => {
+    expect(Object.keys(RELEASE.exitCodes).sort()).toEqual(['0', '2', '3', '4', '5']);
+  });
+
+  it('carry the version they are about', () => {
+    expect(RELEASE.version).toBe(VERSION);
   });
 });
 

@@ -145,4 +145,5 @@ export { find as findEntries, history, byActor, byDay } from './store/query.js';
 export { migrate, CURRENT_VERSION as JOURNAL_VERSION } from './store/migrate.js';
 export { loadConfig, resolveOptions } from './cli/config.js';
 
-export { run as runCommandLine, VERSION } from './cli/program.js';
+export { run as runCommandLine } from './cli/program.js';
+export { VERSION, RELEASE, canRead, compareVersions, parseVersion } from './version.js';

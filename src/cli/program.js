@@ -18,6 +18,7 @@ import { Command } from 'commander';
 import { formatError } from '../errors.js';
 import { EXIT, exitCodeFor, makeContext } from './io.js';
 import { loadConfig } from './config.js';
+import { VERSION } from '../version.js';
 import { registerAudit } from './commands/audit.js';
 import { registerBuck } from './commands/buck.js';
 import { registerCommands } from './commands/commands.js';
@@ -38,7 +39,7 @@ import { registerYard } from './commands/yard.js';
 
 export { FORMATS, requireFormat } from './render/index.js';
 
-export const VERSION = '0.5.0';
+export { VERSION } from '../version.js';
 
 /** Builds the program. Nothing is parsed and nothing is written yet. */
 export function buildProgram(context) {

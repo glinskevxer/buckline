@@ -13,10 +13,10 @@ fail() { echo "release: $1" >&2; exit 1; }
 ok() { echo "release: $1"; }
 
 PKG_VERSION="$(node -p "require('./package.json').version")"
-SRC_VERSION="$(node -e "import('./src/cli/program.js').then(m => console.log(m.VERSION))")"
+SRC_VERSION="$(node -e "import('./src/version.js').then(m => console.log(m.VERSION))")"
 CLI_VERSION="$(node bin/buckline.js --version)"
 
-[ "$PKG_VERSION" = "$SRC_VERSION" ] || fail "package.json says $PKG_VERSION and program.js says $SRC_VERSION"
+[ "$PKG_VERSION" = "$SRC_VERSION" ] || fail "package.json says $PKG_VERSION and version.js says $SRC_VERSION"
 [ "$PKG_VERSION" = "$CLI_VERSION" ] || fail "the command line reports $CLI_VERSION and package.json says $PKG_VERSION"
 ok "version is $PKG_VERSION everywhere"
 
@@ -53,6 +53,15 @@ node -e "
     if (missing.length) { console.error('release: the public surface exports nothing for ' + missing.map(([k]) => k).join(', ')); process.exit(1); }
     console.log('release: the public surface resolves, ' + Object.keys(surface).length + ' names');
   }).catch((error) => { console.error('release: the public surface will not load: ' + error.message); process.exit(1); });
+"
+
+node -e "
+  Promise.all([import('./src/version.js'), import('./src/store/migrate.js'), import('./src/store/snapshot.js')])
+    .then(([v, m, s]) => {
+      if (v.RELEASE.journalFormat !== m.CURRENT_VERSION) { console.error('release: the release notes say journal format ' + v.RELEASE.journalFormat + ' and the journal writes ' + m.CURRENT_VERSION); process.exit(1); }
+      if (v.RELEASE.snapshotFormat !== s.SNAPSHOT_FORMAT) { console.error('release: the release notes say snapshot format ' + v.RELEASE.snapshotFormat + ' and the snapshot writes ' + s.SNAPSHOT_FORMAT); process.exit(1); }
+      console.log('release: the formats the notes claim are the formats it writes');
+    });
 "
 
 node bin/buckline.js doctor >/dev/null || fail "the doctor is not clean"
