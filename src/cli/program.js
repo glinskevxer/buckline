@@ -27,6 +27,7 @@ import { registerDeck } from './commands/deck.js';
 import { registerDoctor } from './commands/doctor.js';
 import { registerForecast } from './commands/forecast.js';
 import { registerGrade } from './commands/grade.js';
+import { registerInit } from './commands/init.js';
 import { registerKiln } from './commands/kiln.js';
 import { registerPeriod } from './commands/period.js';
 import { registerReport } from './commands/report.js';
@@ -71,6 +72,7 @@ export function buildProgram(context) {
   registerDoctor(program, context);
   registerSpecies(program, context);
   registerForecast(program, context);
+  registerInit(program, context);
   registerCommands(program, context);
   return program;
 }
